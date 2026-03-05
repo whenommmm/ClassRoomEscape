@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Attach to the detector object (VisionCone child for cameras, Teacher for teacher).
@@ -61,7 +62,7 @@ public class CameraDetection : MonoBehaviour
         if (_exposureTimer >= detectionTime)
         {
             Debug.Log("[Camera] Player busted!");
-            Destroy(_trackedPlayer.gameObject);
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
     }
 

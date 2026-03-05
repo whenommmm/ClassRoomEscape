@@ -7,7 +7,7 @@ public class PlayerMovement : MonoBehaviour
     public float moveSpeed = 3f;
 
     [Header("Seat Interaction")]
-    public float seatRadius = 1f;   // how close player must be to sit
+    public float seatRadius = 0.75f;   // how close player must be to sit
 
     // Public so other systems (e.g. detection) can read it
     public bool IsStanding { get; private set; } = true;
