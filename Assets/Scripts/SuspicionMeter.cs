@@ -60,7 +60,7 @@ public class SuspicionMeter : MonoBehaviour
     void ShowOpeningDialogue()
     {
         DialogueManager.Instance?.ShowDialogue(
-            "Okay class, the attendance is done.\nLet's proceed with today's topic.");
+            "Okay class, the Attendance is done.\nLet's proceed with today's topic.");
     }
 
     void Update()
