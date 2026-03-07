@@ -28,8 +28,8 @@ Transform:
   m_GameObject: {fileID: 7392858778138495713}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0.5, w: 0.8660254}
-  m_LocalPosition: {x: 2.5, y: -1.44, z: 0}
-  m_LocalScale: {x: 0.98, y: 5.5, z: 3.37}
+  m_LocalPosition: {x: 2.51, y: -1.41, z: 0}
+  m_LocalScale: {x: 0.721378, y: 5.5, z: 3.37}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2691155237685163986}
@@ -106,6 +106,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraDetection
   detectionTime: 1.5
+  alertColor: {r: 1, g: 0, b: 0, a: 0.4}
 --- !u!61 &3274604394292376399
 BoxCollider2D:
   m_ObjectHideFlags: 0

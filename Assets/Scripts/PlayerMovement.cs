@@ -7,14 +7,18 @@ public class PlayerMovement : MonoBehaviour
     public float moveSpeed = 3f;
 
     [Header("Seat Interaction")]
-    public float seatRadius = 0.75f;   // how close player must be to sit
+    public float seatRadius = 0.20f;   // how close player must be to sit
+
+    [Header("Walk Bounds")]
+    public Vector2 walkMin = new Vector2(-5.5f, -4.0f);
+    public Vector2 walkMax = new Vector2( 2.0f,  4.5f);
 
     // Public so other systems (e.g. detection) can read it
     public bool IsStanding { get; private set; } = true;
 
     private Rigidbody2D _rb;
-    private Vector2      _input;
-    private bool         _spaceWasPressed;
+    private Vector2 _input;
+    private bool _spaceWasPressed;
 
     void Awake()
     {
@@ -45,10 +49,10 @@ public class PlayerMovement : MonoBehaviour
         }
 
         float x = 0f, y = 0f;
-        if (kb.dKey.isPressed || kb.rightArrowKey.isPressed)  x += 1f;
-        if (kb.aKey.isPressed || kb.leftArrowKey.isPressed)   x -= 1f;
-        if (kb.wKey.isPressed || kb.upArrowKey.isPressed)     y += 1f;
-        if (kb.sKey.isPressed || kb.downArrowKey.isPressed)   y -= 1f;
+        if (kb.dKey.isPressed || kb.rightArrowKey.isPressed) x += 1f;
+        if (kb.aKey.isPressed || kb.leftArrowKey.isPressed) x -= 1f;
+        if (kb.wKey.isPressed || kb.upArrowKey.isPressed) y += 1f;
+        if (kb.sKey.isPressed || kb.downArrowKey.isPressed) y -= 1f;
 
         _input = new Vector2(x, y);
     }
@@ -57,6 +61,18 @@ public class PlayerMovement : MonoBehaviour
     void FixedUpdate()
     {
         _rb.linearVelocity = _input.normalized * moveSpeed;
+
+        // Clamp position and kill velocity on whichever axis hit the wall
+        Vector2 pos = _rb.position;
+        Vector2 vel = _rb.linearVelocity;
+
+        if (pos.x < walkMin.x) { pos.x = walkMin.x; vel.x = Mathf.Max(0f, vel.x); }
+        if (pos.x > walkMax.x) { pos.x = walkMax.x; vel.x = Mathf.Min(0f, vel.x); }
+        if (pos.y < walkMin.y) { pos.y = walkMin.y; vel.y = Mathf.Max(0f, vel.y); }
+        if (pos.y > walkMax.y) { pos.y = walkMax.y; vel.y = Mathf.Min(0f, vel.y); }
+
+        _rb.position = pos;
+        _rb.linearVelocity = vel;
     }
 
     void TryToggleSit()
@@ -69,22 +85,27 @@ public class PlayerMovement : MonoBehaviour
         }
 
         // Find nearest seat within seatRadius
-        Seat[]   seats      = FindObjectsByType<Seat>(FindObjectsSortMode.None);
-        Seat     nearest    = null;
-        float    nearestDist = float.MaxValue;
+        Seat[] seats = FindObjectsByType<Seat>(FindObjectsSortMode.None);
+        Seat nearest = null;
+        float nearestDist = float.MaxValue;
 
         foreach (Seat seat in seats)
         {
             float dist = Vector2.Distance(transform.position, seat.transform.position);
-            if (dist <= seatRadius && dist < nearestDist)
+            Debug.Log($"[Player] Seat found at distance {dist}. Radius: {seatRadius}");
+            
+            // Check if player is within radius AND within acceptable Y range (player Y < seat Y with some tolerance)
+            float yDifference = seat.transform.position.y - transform.position.y;
+            if (dist <= seatRadius && dist < nearestDist && yDifference > -0.5f)
             {
-                nearest     = seat;
+                nearest = seat;
                 nearestDist = dist;
             }
         }
 
         if (nearest != null)
         {
+            Debug.Log($"[Player] Sitting! Distance was {nearestDist}, radius is {seatRadius}");
             transform.position = nearest.transform.position; // snap to seat
             SetStanding(false);
         }

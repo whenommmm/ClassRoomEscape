@@ -4,7 +4,7 @@ using System.Collections;
 public class CameraMovement : MonoBehaviour
 {
     [Header("Rotation Settings")]
-    public float rotationAngle = 15f;    // degrees each side from starting rotation
+    public float rotationAngle = 20f;    // degrees each side from starting rotation
     public float sweepSpeed    = 25f;    // degrees per second
     public float pauseDuration = 0.7f;   // pause at each extreme (seconds)
 
@@ -13,6 +13,7 @@ public class CameraMovement : MonoBehaviour
     void Start()
     {
         _startAngle = transform.eulerAngles.z;
+
         StartCoroutine(SweepRoutine());
     }
 
@@ -20,7 +21,7 @@ public class CameraMovement : MonoBehaviour
     {
         while (true)
         {
-            // Sweep to +angle
+            
             yield return SweepTo(_startAngle + rotationAngle);
             yield return new WaitForSeconds(pauseDuration);
 

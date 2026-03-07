@@ -1,0 +1,173 @@
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+/// <summary>
+/// Singleton suspicion meter.
+/// Renders a world-space bar above the player's head.
+/// CameraDetection calls RegisterWatcher/UnregisterWatcher each frame.
+/// </summary>
+public class SuspicionMeter : MonoBehaviour
+{
+    public static SuspicionMeter Instance { get; private set; }
+
+    [Header("Suspicion Settings")]
+    public float fillRate      = 0.4f;   // per second while standing (base)
+    public float watcherBonus  = 0.3f;   // extra per second per watcher (camera/teacher)
+    public float drainRate     = 0.15f;   // per second while seated
+    public float catchThreshold = 1f;
+    
+
+    [Header("World-Space Bar")]
+    public Vector2 barOffset    = new Vector2(0f, 0.65f);  
+    public float   barWidth     = 1.0f;
+    public float   barHeight    = 0.14f;
+    public Color   bgColor      = new Color(0.15f, 0.15f, 0.15f, 0.85f);
+    public Color   fillColor    = new Color(1f, 0.35f, 0f, 1f);   
+    public Color   dangerColor  = new Color(1f, 0.05f, 0.05f, 1f); 
+
+
+    // ── private ──────────────────────────────────────────────────────────────
+    private float              _suspicion;
+    private int                _watchers;
+    private PlayerMovement     _player;
+    private TeacherVisionCone  _teacher;
+    private bool               _alertActive    = false;
+    private bool               _dialoguePlayed = false;   // fires only once ever
+    private const float        AlertThreshold  = 0.5f;
+
+    private Transform      _barRoot;
+    private SpriteRenderer _bgSr;
+    private SpriteRenderer _fill;
+
+    // ── lifecycle ────────────────────────────────────────────────────────────
+    void Awake()
+    {
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+        Instance = this;
+    }
+
+    void Start()
+    {
+        _player  = FindFirstObjectByType<PlayerMovement>();
+        _teacher = FindFirstObjectByType<TeacherVisionCone>();
+        if (_player != null)
+            BuildBar(_player.transform);
+    }
+
+    void Update()
+    {
+        if (_player == null) return;
+
+        if (_player.IsStanding)
+        {
+            // Always fills while standing; watchers add bonus speed
+            _suspicion += (fillRate + watcherBonus * _watchers) * Time.deltaTime;
+        }
+        else
+        {
+            // Drain while seated
+            _suspicion -= drainRate * Time.deltaTime;
+        }
+
+        _suspicion = Mathf.Clamp01(_suspicion);
+
+        // Trigger teacher alert at 50% suspicion
+        bool shouldAlert = _suspicion >= AlertThreshold;
+        if (shouldAlert != _alertActive)
+        {
+            _alertActive = shouldAlert;
+            _teacher?.SetAlertMode(_alertActive, _player.transform);
+
+            // Dialogue — only the very first time ever
+            if (_alertActive && !_dialoguePlayed)
+            {
+                _dialoguePlayed = true;
+                DialogueManager.Instance?.ShowDialogue("Sit the FUCK down!");
+            }
+        }
+
+        UpdateBar();
+
+        if (_suspicion >= catchThreshold)
+            OnCaught();
+    }
+
+    // ── public API ───────────────────────────────────────────────────────────
+    public void RegisterWatcher()   => _watchers++;
+    public void UnregisterWatcher() => _watchers = Mathf.Max(0, _watchers - 1);
+
+    // ── bar building ─────────────────────────────────────────────────────────
+    void BuildBar(Transform parent)
+    {
+        // Inherit the player's sorting layer so we always render above game sprites
+        SpriteRenderer playerSr = parent.GetComponent<SpriteRenderer>();
+        string sortLayer = playerSr != null ? playerSr.sortingLayerName : "Default";
+        int    baseOrder = playerSr != null ? playerSr.sortingOrder + 1 : 10;
+
+        // Root follows the player
+        _barRoot = new GameObject("SuspicionBar").transform;
+        _barRoot.SetParent(parent);
+        _barRoot.localPosition = barOffset;
+        _barRoot.localScale    = Vector3.one;
+
+        // Background — always visible
+        GameObject bg = CreateQuad("BG", bgColor, sortLayer, baseOrder);
+        bg.transform.SetParent(_barRoot, false);
+        bg.transform.localScale = new Vector3(barWidth, barHeight, 1f);
+        _bgSr = bg.GetComponent<SpriteRenderer>();
+
+        // Fill (anchored left; we scale its x each frame)
+        GameObject fillGo = CreateQuad("Fill", fillColor, sortLayer, baseOrder + 1);
+        fillGo.transform.SetParent(_barRoot, false);
+        _fill = fillGo.GetComponent<SpriteRenderer>();
+        fillGo.transform.localPosition = new Vector3(-barWidth * 0.5f, 0f, 0f);
+        fillGo.transform.localScale    = new Vector3(0f, barHeight * 0.85f, 1f);
+    }
+
+    void UpdateBar()
+    {
+        if (_fill == null) return;
+
+        // Scale fill from left: width goes 0 → barWidth
+        float w = barWidth * _suspicion;
+        _fill.transform.localPosition = new Vector3(-barWidth * 0.5f + w * 0.5f, 0f, 0f);
+        _fill.transform.localScale    = new Vector3(Mathf.Max(w, 0f), barHeight * 0.85f, 1f);
+
+        // Lerp color from orange to danger-red as meter fills
+        _fill.color = Color.Lerp(fillColor, dangerColor, _suspicion);
+
+        // Background always on; hide fill when empty
+        _fill.enabled = _suspicion > 0.001f;
+    }
+
+    // ── helpers ──────────────────────────────────────────────────────────────
+    GameObject CreateQuad(string goName, Color color, string sortLayer, int sortOrder)
+    {
+        var go = new GameObject(goName);
+        var sr = go.AddComponent<SpriteRenderer>();
+        sr.sprite           = GetWhiteSprite();
+        sr.color            = color;
+        sr.sortingLayerName = sortLayer;
+        sr.sortingOrder     = sortOrder;
+        return go;
+    }
+
+    static Sprite _whiteSprite;
+    static Sprite GetWhiteSprite()
+    {
+        if (_whiteSprite != null) return _whiteSprite;
+        Texture2D tex = new Texture2D(1, 1);
+        tex.SetPixel(0, 0, Color.white);
+        tex.Apply();
+        _whiteSprite = Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
+        return _whiteSprite;
+    }
+
+    void OnCaught()
+    {
+        Debug.Log("[SuspicionMeter] Player caught!");
+        _suspicion = 0f;
+        _watchers  = 0;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+}

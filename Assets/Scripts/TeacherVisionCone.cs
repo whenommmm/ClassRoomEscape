@@ -2,9 +2,10 @@ using UnityEngine;
 using System.Collections;
 
 /// <summary>
-/// Attach to the Teacher GameObject (which already has a SpriteRenderer).
-/// The PolygonCollider2D and CameraDetection are placed on the ConePivot child
-/// so they rotate with the visible cone — fixing detection mismatch.
+/// Attach to the Teacher GameObject.
+/// Normal mode: sweeping fan cone.
+/// Alert mode (triggered externally at 50% suspicion): narrow rectangle
+///   that locks onto and tracks the player until suspicion cools down.
 /// </summary>
 public class TeacherVisionCone : MonoBehaviour
 {
@@ -15,19 +16,28 @@ public class TeacherVisionCone : MonoBehaviour
     public int   rayCount  = 30;
 
     [Header("Visual")]
-    public Color coneColor = new Color(1f, 0.6f, 0f, 0.35f);
+    public Color coneColor  = new Color(1f, 0.6f, 0f, 0.35f);
+    public Color alertColor = new Color(1f, 0.05f, 0.05f, 0.55f); // red in alert mode
 
-    [Header("Rotation")]
+    [Header("Rotation (normal sweep)")]
     public float sweepAngle    = 30f;
     public float sweepSpeed    = 20f;
     public float pauseDuration = 1f;
 
+    [Header("Alert Rectangle")]
+    public float alertWidth = 1.35f;  // half-width of the rectangle beam
+
+    // ── internals ─────────────────────────────────────────────────────────────
     private Transform         _conePivot;
     private MeshFilter        _mf;
     private MeshRenderer      _mr;
-    private PolygonCollider2D _col;    // lives on ConePivot — rotates with cone
+    private PolygonCollider2D _col;
     private float             _startAngle;
 
+    private bool      _alertMode = false;
+    private Transform _playerTransform;
+
+    // ── lifecycle ─────────────────────────────────────────────────────────────
     void Awake()
     {
         // ConePivot: collider + detection + visual all rotate together
@@ -35,11 +45,10 @@ public class TeacherVisionCone : MonoBehaviour
         pivot.transform.SetParent(transform, false);
         _conePivot = pivot.transform;
 
-        // PolygonCollider2D on ConePivot
         _col           = pivot.AddComponent<PolygonCollider2D>();
         _col.isTrigger = true;
 
-        // VisionConeMesh FIRST — must exist before CameraDetection.Awake() fires
+        // Visual mesh (must exist before CameraDetection.Awake fires)
         GameObject coneVisual = new GameObject("VisionConeMesh");
         coneVisual.transform.SetParent(_conePivot, false);
 
@@ -51,7 +60,6 @@ public class TeacherVisionCone : MonoBehaviour
         _mr.material = mat;
         _mr.sortingOrder = 1;
 
-        // CameraDetection AFTER MeshRenderer exists — Awake will find it correctly
         pivot.AddComponent<CameraDetection>();
 
         BuildCone();
@@ -63,6 +71,58 @@ public class TeacherVisionCone : MonoBehaviour
         StartCoroutine(SweepRoutine());
     }
 
+    void Update()
+    {
+        if (_alertMode && _playerTransform != null)
+        {
+            // Rotate pivot to face player
+            Vector2 dir = (_playerTransform.position - transform.position).normalized;
+            float angle = Mathf.Atan2(dir.x, -dir.y) * Mathf.Rad2Deg;
+            _conePivot.rotation = Quaternion.Euler(0f, 0f, angle);
+
+            // Stretch rectangle to exactly reach the player.
+            // InverseTransformPoint converts to _conePivot local space, so scale on
+            // the teacher or its parents is automatically accounted for.
+            Vector3 localPlayer = _conePivot.InverseTransformPoint(_playerTransform.position);
+            float dist = localPlayer.magnitude + 0.15f;  // tiny overshoot so tip covers player
+            BuildRectangle(dist);
+        }
+    }
+
+    // ── public API ────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Called by SuspicionMeter when suspicion crosses 50%.
+    /// alert=true  → stop sweep, switch to red tracking rectangle.
+    /// alert=false → resume sweep, restore fan cone.
+    /// </summary>
+    public void SetAlertMode(bool alert, Transform player = null)
+    {
+        if (_alertMode == alert) return;
+        _alertMode = alert;
+
+        if (alert)
+        {
+            _playerTransform = player;
+            StopAllCoroutines();
+            float dist = player != null
+                ? Vector2.Distance(transform.position, player.position)
+                : coneRange;
+            BuildRectangle(dist);
+            _mr.material.color = alertColor;
+        }
+        else
+        {
+            _playerTransform = null;
+            BuildRectangle(coneRange); // reset to default range before switching back
+            BuildCone();
+            _mr.material.color = coneColor;
+            _startAngle = _conePivot.eulerAngles.z;
+            StartCoroutine(SweepRoutine());
+        }
+    }
+
+    // ── sweep (normal mode) ───────────────────────────────────────────────────
     IEnumerator SweepRoutine()
     {
         while (true)
@@ -88,6 +148,7 @@ public class TeacherVisionCone : MonoBehaviour
         _conePivot.rotation = Quaternion.Euler(0f, 0f, targetAngle);
     }
 
+    // ── mesh / collider builders ──────────────────────────────────────────────
     void BuildCone()
     {
         Mesh mesh = new Mesh();
@@ -123,7 +184,38 @@ public class TeacherVisionCone : MonoBehaviour
         mesh.triangles = tris;
         mesh.RecalculateNormals();
         _mf.mesh = mesh;
-
         _col.SetPath(0, poly);
+    }
+
+    void BuildRectangle(float length)
+    {
+        float w = alertWidth;
+        float h = length;
+
+        Mesh mesh = new Mesh();
+        mesh.name = "AlertRect";
+
+        Vector3[] verts = new Vector3[]
+        {
+            new Vector3(-w,  0f, 0f),
+            new Vector3( w,  0f, 0f),
+            new Vector3( w, -h,  0f),
+            new Vector3(-w, -h,  0f)
+        };
+
+        int[] tris = new int[] { 0, 1, 2, 0, 2, 3 };
+
+        mesh.vertices  = verts;
+        mesh.triangles = tris;
+        mesh.RecalculateNormals();
+        _mf.mesh = mesh;
+
+        _col.SetPath(0, new Vector2[]
+        {
+            new Vector2(-w,  0f),
+            new Vector2( w,  0f),
+            new Vector2( w, -h),
+            new Vector2(-w, -h)
+        });
     }
 }

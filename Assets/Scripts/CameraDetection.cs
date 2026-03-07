@@ -1,20 +1,18 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Attach to the detector object (VisionCone child for cameras, Teacher for teacher).
+/// Instead of catching the player instantly, it now feeds into the SuspicionMeter.
 /// For cameras: colors the SpriteRenderer on this same object.
 /// For teacher: colors the VisionConeMesh child's MeshRenderer instead.
 /// </summary>
 public class CameraDetection : MonoBehaviour
 {
-    [Header("Detection Settings")]
-    public float detectionTime = 1f;
-    public Color alertColor    = new Color(1f, 0f, 0f, 0.4f); // semi-transparent red
+    [Header("Visual Alert")]
+    public Color alertColor = new Color(1f, 0f, 0f, 0.4f); // semi-transparent red
 
-
-    private float          _exposureTimer;
     private PlayerMovement _trackedPlayer;
+    private bool _isWatching = false;   // true while we're feeding the SuspicionMeter
 
     private SpriteRenderer _sr;
     private MeshRenderer   _mr;
@@ -40,7 +38,6 @@ public class CameraDetection : MonoBehaviour
         PlayerMovement player = other.GetComponent<PlayerMovement>();
         if (player == null) return;
         _trackedPlayer = player;
-        _exposureTimer = 0f;
     }
 
     private void OnTriggerStay2D(Collider2D other)
@@ -49,28 +46,39 @@ public class CameraDetection : MonoBehaviour
 
         if (!_trackedPlayer.IsStanding)
         {
-            _exposureTimer = 0f;
-            SetConeColor(_defaultColor);
+            // Player sat down — stop watching
+            StopWatching();
             return;
         }
 
+        // Player is standing inside our cone → alert color + feed meter
         Color alert = alertColor;
-        alert.a = _defaultColor.a;   // keep same opacity as the cone's normal color
+        alert.a = _defaultColor.a;   // keep the cone's original opacity
         SetConeColor(alert);
-        _exposureTimer += Time.deltaTime;
 
-        if (_exposureTimer >= detectionTime)
+        if (!_isWatching)
         {
-            Debug.Log("[Camera] Player busted!");
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            SuspicionMeter.Instance?.RegisterWatcher();
+            _isWatching = true;
         }
     }
 
     private void OnTriggerExit2D(Collider2D other)
     {
         if (other.GetComponent<PlayerMovement>() == null) return;
-        _exposureTimer = 0f;
         _trackedPlayer = null;
+        StopWatching();
+    }
+
+    // ── helpers ──────────────────────────────────────────────────────────────
+
+    private void StopWatching()
+    {
+        if (_isWatching)
+        {
+            SuspicionMeter.Instance?.UnregisterWatcher();
+            _isWatching = false;
+        }
         SetConeColor(_defaultColor);
     }
 
