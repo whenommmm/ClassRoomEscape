@@ -25,6 +25,30 @@ public class PlayerMovement : MonoBehaviour
         _rb = GetComponent<Rigidbody2D>();
     }
 
+    void Start()
+    {
+        // Snap to nearest seat and begin the game seated
+        Seat[] seats = FindObjectsByType<Seat>(FindObjectsSortMode.None);
+        Seat nearest = null;
+        float nearestDist = float.MaxValue;
+
+        foreach (Seat seat in seats)
+        {
+            float dist = Vector2.Distance(transform.position, seat.transform.position);
+            if (dist < nearestDist)
+            {
+                nearest = seat;
+                nearestDist = dist;
+            }
+        }
+
+        if (nearest != null)
+        {
+            transform.position = nearest.transform.position;
+            SetStanding(false);
+        }
+    }
+
     // Public so other systems (e.g. animation) can read movement direction
     public Vector2 InputDirection => _input;
 
