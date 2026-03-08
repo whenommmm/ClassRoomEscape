@@ -11,8 +11,8 @@ public class SuspicionMeter : MonoBehaviour
     public static SuspicionMeter Instance { get; private set; }
 
     [Header("Suspicion Settings")]
-    public float fillRate      = 0.18f;  // per second while standing (base)
-    public float watcherBonus  = 0.15f;  // extra per second per watcher (camera/teacher)
+    public float fillRate      = 0.02f;  // per second while JUST standing (very slow baseline)
+    public float watcherBonus  = 0.22f;  // extra per second per watcher — this is the real threat
     public float drainRate     = 0.15f;   // per second while seated
     public float catchThreshold = 1f;
     
@@ -60,7 +60,7 @@ public class SuspicionMeter : MonoBehaviour
     void ShowOpeningDialogue()
     {
         DialogueManager.Instance?.ShowDialogue(
-            "Okay class, the Attendance is done.\nLet's proceed with today's topic.");
+            "Okay Class, the Attendance is done.\nLet's try and design a bird today.");
     }
 
     void Update()
@@ -79,6 +79,7 @@ public class SuspicionMeter : MonoBehaviour
         }
 
         _suspicion = Mathf.Clamp01(_suspicion);
+        
 
         // Trigger teacher alert at 50% suspicion
         bool shouldAlert = _suspicion >= AlertThreshold;
