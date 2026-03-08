@@ -2340,12 +2340,24 @@ PrefabInstance:
       value: 2.8
       objectReference: {fileID: 0}
     - target: {fileID: 4337838544550792477, guid: 8e6741b8797b74027846831448bcacee, type: 3}
+      propertyPath: walkMax.x
+      value: 5.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4337838544550792477, guid: 8e6741b8797b74027846831448bcacee, type: 3}
       propertyPath: seatRadius
       value: 0.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 4337838544550792477, guid: 8e6741b8797b74027846831448bcacee, type: 3}
+      propertyPath: sitCooldown
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 8313801558667353251, guid: 8e6741b8797b74027846831448bcacee, type: 3}
       propertyPath: m_Name
       value: Student
+      objectReference: {fileID: 0}
+    - target: {fileID: 8625637694344405081, guid: 8e6741b8797b74027846831448bcacee, type: 3}
+      propertyPath: m_SortingOrder
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2513,6 +2525,14 @@ PrefabInstance:
     - target: {fileID: 3890066487586678247, guid: 18fcac5614ad047c18e0a394145553ac, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8137425873480825608, guid: 18fcac5614ad047c18e0a394145553ac, type: 3}
+      propertyPath: fillRate
+      value: 0.07
+      objectReference: {fileID: 0}
+    - target: {fileID: 8137425873480825608, guid: 18fcac5614ad047c18e0a394145553ac, type: 3}
+      propertyPath: watcherBonus
+      value: 0.22
       objectReference: {fileID: 0}
     - target: {fileID: 8490837930907300432, guid: 18fcac5614ad047c18e0a394145553ac, type: 3}
       propertyPath: m_Name
