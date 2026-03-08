@@ -10,22 +10,18 @@ public class SuspicionMeter : MonoBehaviour
 {
     public static SuspicionMeter Instance { get; private set; }
 
-    [Header("Suspicion Settings")]
-    public float fillRate      = 0.02f;  // per second while JUST standing (very slow baseline)
-    public float watcherBonus  = 0.22f;  // extra per second per watcher — this is the real threat
-    public float drainRate     = 0.15f;   // per second while seated
-    public float catchThreshold = 1f;
+    private float fillRate      = 0.02f;  // per second while JUST standing (very slow baseline)
+    private float watcherBonus  = 0.2f;  // extra per second per watcher — this is the real threat
+    private float drainRate     = 0.15f;   // per second while seated
+    private float catchThreshold = 1f;
     
 
-    [Header("World-Space Bar")]
-    public Vector2 barOffset    = new Vector2(0f, 0.65f);  
-    public float   barWidth     = 1.0f;
-    public float   barHeight    = 0.14f;
-    public Color   bgColor      = new Color(0.15f, 0.15f, 0.15f, 0.85f);
-    public Color   fillColor    = new Color(1f, 0.35f, 0f, 1f);   
-    public Color   dangerColor  = new Color(1f, 0.05f, 0.05f, 1f); 
-
-
+    private Vector2 barOffset   = new Vector2(0f, 0.8f);
+    private float   barWidth    = 1.4f;
+    private float   barHeight   = 0.29f;
+    private Color   bgColor     = new Color(0.15f, 0.15f, 0.15f, 0.85f);
+    private Color   fillColor   = new Color(1f, 0.35f, 0f, 1f);
+    private Color   dangerColor = new Color(1f, 0.05f, 0.05f, 1f);
     // ── private ──────────────────────────────────────────────────────────────
     private float              _suspicion;
     private int                _watchers;

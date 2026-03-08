@@ -8,7 +8,7 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Seat Interaction")]
     public float seatRadius    = 0.20f;   // how close player must be to sit
-    public float sitCooldown   = 3f;      // seconds before player can sit again after standing up
+    private float sitCooldown   = 3f;      // seconds before player can sit again after standing up
 
     [Header("Walk Bounds")]
     public Vector2 walkMin = new Vector2(-5.5f, -4.0f);
