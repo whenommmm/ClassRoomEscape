@@ -12,7 +12,7 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Walk Bounds")]
     public Vector2 walkMin = new Vector2(-5.5f, -4.0f);
-    public Vector2 walkMax = new Vector2( 6.0f,  4.5f);
+    private Vector2 walkMax = new Vector2( 6.0f,  4.5f);
 
     // Public so other systems (e.g. detection) can read it
     public bool IsStanding { get; private set; } = true;
