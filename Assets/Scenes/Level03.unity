@@ -1583,6 +1583,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1018292791994877279, guid: e97ad6b2d82424f58b055ccf27ac4539, type: 3}
+      propertyPath: alertWidth
+      value: 0.8
+      objectReference: {fileID: 0}
     - target: {fileID: 5341265169442772562, guid: e97ad6b2d82424f58b055ccf27ac4539, type: 3}
       propertyPath: m_Name
       value: Teacher

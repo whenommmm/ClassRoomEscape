@@ -25,7 +25,7 @@ public class TeacherVisionCone : MonoBehaviour
     public float pauseDuration = 1f;
 
     [Header("Alert Rectangle")]
-    public float alertWidth = 1.35f;  // half-width of the rectangle beam
+    public float alertWidth = 0.8f;  // half-width of the rectangle beam
 
     [Header("Classroom Bounds")]
     public Vector2 roomMin = new Vector2(-5.5f, -4.0f);
