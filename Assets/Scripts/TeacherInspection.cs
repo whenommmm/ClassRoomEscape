@@ -33,7 +33,7 @@ public class TeacherInspection : MonoBehaviour
     {
         if (_allRows == null || _allRows.Length == 0 || _player == null)
             yield break;
-            
+       
 
         _isInspecting = true;
 
@@ -41,45 +41,43 @@ public class TeacherInspection : MonoBehaviour
         RowZone targetRow = null;
         float closestDist = float.MaxValue;
 
-            foreach (var row in _allRows)
-            {
-                // Measure distance to row center
-                float dist = Vector2.Distance(_player.transform.position, row.transform.position);
-                if (dist < closestDist)
-                {
-                    closestDist = dist;
-                    targetRow   = row;
-                }
-            }
-
-            if (targetRow == null) continue;
-
-            // Announce via Dialogue using the closest row's type
-            string rowName = targetRow.rowType switch
-            {
-                RowType.First  => "Front row",
-                RowType.Middle => "Middle row",
-                RowType.Last   => "Back row",
-                _              => "That row"
-            };
-            DialogueManager.Instance?.ShowDialogue($"{rowName}, sit properly and keep quiet!", "Teacher");
-
-            // 5. Warning Phase (Orange Glow)
-            targetRow.SetState(isWarning: true, isDangerous: false);
-            yield return new WaitForSeconds(warningDuration);
-
-            // 6. Danger Phase (Red Glow - penalizes sitting players)
-            targetRow.SetState(isWarning: false, isDangerous: true);
-            yield return new WaitForSeconds(dangerDuration);
-
-            // 7. Cooldown / Reset
-            targetRow.SetState(isWarning: false, isDangerous: false);
-        }
-        else
+        foreach (var row in _allRows)
         {
-            // Safety break if it somehow failed
-            yield return null;
+            // Measure distance to row center
+            float dist = Vector2.Distance(_player.transform.position, row.transform.position);
+            if (dist < closestDist)
+            {
+                closestDist = dist;
+                targetRow   = row;
+            }
         }
+
+        if (targetRow == null)
+        {
+            _isInspecting = false;
+            yield break;
+        }
+
+        // Announce via Dialogue using the closest row's type
+        string rowName = targetRow.rowType switch
+        {
+            RowType.First  => "Front row",
+            RowType.Middle => "Middle row",
+            RowType.Last   => "Back row",
+            _              => "That row"
+        };
+        DialogueManager.Instance?.ShowDialogue($"{rowName}, sit properly and keep quiet!", "Teacher");
+
+        // 5. Warning Phase (Orange Glow)
+        targetRow.SetState(isWarning: true, isDangerous: false);
+        yield return new WaitForSeconds(warningDuration);
+
+        // 6. Danger Phase (Red Glow - penalizes sitting players)
+        targetRow.SetState(isWarning: false, isDangerous: true);
+        yield return new WaitForSeconds(dangerDuration);
+
+        // 7. Cooldown / Reset
+        targetRow.SetState(isWarning: false, isDangerous: false);
 
         _isInspecting = false;
     }
