@@ -55,13 +55,13 @@ public class RowZone : MonoBehaviour
         }
     }
 
-    private bool _playerIsInside = false;
+    public bool PlayerIsInside { get; private set; } = false;
 
     private void Update()
     {
         // If the player is inside the row and it's dangerous, force suspicion up regardless of sitting
         // Calling this in Update guarantees the flag is set every frame, avoiding physics sleep issues
-        if (IsDangerous && _playerIsInside)
+        if (IsDangerous && PlayerIsInside)
         {
             SuspicionMeter.Instance?.AddRowPenalty();
         }
@@ -71,7 +71,7 @@ public class RowZone : MonoBehaviour
     {
         if (collision.GetComponent<PlayerMovement>() != null)
         {
-            _playerIsInside = true;
+            PlayerIsInside = true;
         }
     }
 
@@ -79,7 +79,7 @@ public class RowZone : MonoBehaviour
     {
         if (collision.GetComponent<PlayerMovement>() != null)
         {
-            _playerIsInside = false;
+            PlayerIsInside = false;
         }
     }
 }
