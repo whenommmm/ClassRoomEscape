@@ -10,10 +10,10 @@ public class SuspicionMeter : MonoBehaviour
 {
     public static SuspicionMeter Instance { get; private set; }
 
-    private float fillRate      = 0.02f;  // per second while JUST standing (very slow baseline)
-    private float watcherBonus  = 0.2f;  // extra per second per watcher — this is the real threat
-    private float drainRate     = 0.15f;   // per second while seated
-    private float catchThreshold = 1f;
+    public float fillRate      = 0.07f;  
+    public float drainRate     = 0.13f;  
+    public float catchThreshold = 1f; 
+    public float watcherBonus  = 0.25f;  
     
 
     private Vector2 barOffset   = new Vector2(0f, 0.8f);

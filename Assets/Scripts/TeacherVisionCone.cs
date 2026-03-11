@@ -27,6 +27,10 @@ public class TeacherVisionCone : MonoBehaviour
     [Header("Alert Rectangle")]
     public float alertWidth = 1.35f;  // half-width of the rectangle beam
 
+    [Header("Classroom Bounds")]
+    public Vector2 roomMin = new Vector2(-5.5f, -4.0f);
+    public Vector2 roomMax = new Vector2( 6.0f,  4.5f);
+
     // ── internals ─────────────────────────────────────────────────────────────
     private Transform         _conePivot;
     private MeshFilter        _mf;

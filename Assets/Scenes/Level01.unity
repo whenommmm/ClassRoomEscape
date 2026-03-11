@@ -2528,11 +2528,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8137425873480825608, guid: 18fcac5614ad047c18e0a394145553ac, type: 3}
       propertyPath: fillRate
-      value: 0.07
+      value: 0.08
       objectReference: {fileID: 0}
     - target: {fileID: 8137425873480825608, guid: 18fcac5614ad047c18e0a394145553ac, type: 3}
       propertyPath: watcherBonus
-      value: 0.22
+      value: 0.25
       objectReference: {fileID: 0}
     - target: {fileID: 8490837930907300432, guid: 18fcac5614ad047c18e0a394145553ac, type: 3}
       propertyPath: m_Name
