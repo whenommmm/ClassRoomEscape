@@ -10,10 +10,10 @@ public class SuspicionMeter : MonoBehaviour
 {
     public static SuspicionMeter Instance { get; private set; }
 
-    public float fillRate      = 0.04f;  
-    public float drainRate     = 0.13f;  
-    public float catchThreshold = 1f; 
-    public float watcherBonus  = 0.18f;  
+    private float watcherBonus  = 0.15f;  
+    private float fillRate      = 0.04f;  
+    private float drainRate     = 0.13f;  
+    private float catchThreshold = 1f; 
     
 
     private Vector2 barOffset   = new Vector2(0f, 0.8f);

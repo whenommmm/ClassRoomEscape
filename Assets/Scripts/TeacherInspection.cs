@@ -74,10 +74,21 @@ public class TeacherInspection : MonoBehaviour
 
         // 6. Danger Phase (Red Glow - penalizes sitting players)
         targetRow.SetState(isWarning: false, isDangerous: true);
-        yield return new WaitForSeconds(dangerDuration);
 
-        // 7. Cooldown / Reset
-        targetRow.SetState(isWarning: false, isDangerous: false);
+        // Wait an initial 2 seconds
+        yield return new WaitForSeconds(2f);
+
+        // If the player successfully got out of the row after 2 seconds, cancel the inspection early
+        if (!targetRow.PlayerIsInside)
+        {
+            targetRow.SetState(isWarning: false, isDangerous: false);
+        }
+        else
+        {
+            // Flow continues if they are still inside
+            yield return new WaitForSeconds(dangerDuration - 2f);
+            targetRow.SetState(isWarning: false, isDangerous: false);
+        }
 
         _isInspecting = false;
     }
