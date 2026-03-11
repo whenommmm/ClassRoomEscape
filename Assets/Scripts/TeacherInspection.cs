@@ -33,6 +33,7 @@ public class TeacherInspection : MonoBehaviour
     {
         if (_allRows == null || _allRows.Length == 0 || _player == null)
             yield break;
+            
 
         _isInspecting = true;
 
