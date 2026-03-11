@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic;
 
 /// <summary>
 /// Pokémon-style typewriter dialogue box — redesigned with layered panels,
@@ -10,6 +11,12 @@ using System.Collections;
 public class DialogueManager : MonoBehaviour
 {
     public static DialogueManager Instance { get; private set; }
+
+    public struct DialogueRequest
+    {
+        public string message;
+        public string speaker;
+    }
 
     [Header("Typewriter")]
     public float typeSpeed       = 0.035f;
@@ -25,9 +32,13 @@ public class DialogueManager : MonoBehaviour
 
     // ── private refs ──────────────────────────────────────────────────────────
     private GameObject _root;
+    private GameObject _badgeRoot;
+    private Text       _badgeText;
     private Text       _bodyText;
     private Text       _arrow;
     private Coroutine  _routine;
+
+    private Queue<DialogueRequest> _queue = new Queue<DialogueRequest>();
 
     // ── lifecycle ─────────────────────────────────────────────────────────────
     void Awake()
@@ -39,35 +50,52 @@ public class DialogueManager : MonoBehaviour
     }
 
     // ── public ────────────────────────────────────────────────────────────────
-    public void ShowDialogue(string message)
+    public void ShowDialogue(string message, string speaker = "Teacher")
     {
-        if (_routine != null) StopCoroutine(_routine);
-        _root.SetActive(true);
-        _routine = StartCoroutine(Run(message));
+        _queue.Enqueue(new DialogueRequest { message = message, speaker = speaker });
+
+        // If not already running a dialogue, start the pump
+        if (_routine == null)
+        {
+            _root.SetActive(true);
+            _routine = StartCoroutine(PumpQueue());
+        }
     }
 
     // ── coroutine ─────────────────────────────────────────────────────────────
-    IEnumerator Run(string message)
+    IEnumerator PumpQueue()
     {
-        _bodyText.text = "";
-        _arrow.enabled = false;
-
-        foreach (char c in message)
+        while (_queue.Count > 0)
         {
-            _bodyText.text += c;
-            yield return new WaitForSeconds(typeSpeed);
+            DialogueRequest req = _queue.Dequeue();
+            
+            // Setup speaker badge
+            bool hasSpeaker = !string.IsNullOrEmpty(req.speaker);
+            _badgeRoot.SetActive(hasSpeaker);
+            if (hasSpeaker) _badgeText.text = req.speaker;
+
+            _bodyText.text = "";
+            _arrow.enabled = false;
+
+            // Typewriter effect
+            foreach (char c in req.message)
+            {
+                _bodyText.text += c;
+                yield return new WaitForSeconds(typeSpeed);
+            }
+
+            // Blink the ▼ arrow while waiting for reading time
+            _arrow.enabled = true;
+            float timer = 0f;
+            while (timer < holdAfterFinish)
+            {
+                timer += Time.deltaTime;
+                _arrow.enabled = (Mathf.Sin(timer * 8f) > 0f);
+                yield return null;
+            }
         }
 
-        // Blink the ▼ arrow while waiting
-        _arrow.enabled = true;
-        float timer = 0f;
-        while (timer < holdAfterFinish)
-        {
-            timer += Time.deltaTime;
-            _arrow.enabled = (Mathf.Sin(timer * 8f) > 0f);
-            yield return null;
-        }
-
+        // Queue empty, hide UI
         _root.SetActive(false);
         _routine = null;
     }
@@ -112,29 +140,29 @@ public class DialogueManager : MonoBehaviour
             new Vector2(-4f, -4f), ColBackground, height: 0f, stretch: true);
 
         // ── Speaker badge ─────────────────────────────────────────────────────
-        GameObject badge = new GameObject("SpeakerBadge");
-        badge.transform.SetParent(outerBorder.transform, false);
-        RectTransform brt = badge.AddComponent<RectTransform>();
+        _badgeRoot = new GameObject("SpeakerBadge");
+        _badgeRoot.transform.SetParent(outerBorder.transform, false);
+        RectTransform brt = _badgeRoot.AddComponent<RectTransform>();
         brt.anchorMin = new Vector2(0f, 1f);
         brt.anchorMax = new Vector2(0f, 1f);
         brt.pivot     = new Vector2(0f, 0f);
         brt.anchoredPosition = new Vector2(16f, 5f);
         brt.sizeDelta = new Vector2(130f, 34f);
-        badge.AddComponent<Image>().color = ColBorderOuter;
+        _badgeRoot.AddComponent<Image>().color = ColBorderOuter;
 
         // Badge text
-        Text badgeTxt = Child<Text>("BadgeText", badge.transform);
-        RectTransform bTxtRt = badgeTxt.GetComponent<RectTransform>();
+        _badgeText = Child<Text>("BadgeText", _badgeRoot.transform);
+        RectTransform bTxtRt = _badgeText.GetComponent<RectTransform>();
         bTxtRt.anchorMin = Vector2.zero;
         bTxtRt.anchorMax = Vector2.one;
         bTxtRt.offsetMin = new Vector2(10f, 4f);
         bTxtRt.offsetMax = new Vector2(-10f, -4f);
-        badgeTxt.text      = "Teacher";
-        badgeTxt.font      = Font();
-        badgeTxt.fontSize  = 20;
-        badgeTxt.fontStyle = FontStyle.Bold;
-        badgeTxt.color     = ColNameText;
-        badgeTxt.alignment = TextAnchor.MiddleLeft;
+        _badgeText.text      = "Teacher";
+        _badgeText.font      = Font();
+        _badgeText.fontSize  = 20;
+        _badgeText.fontStyle = FontStyle.Bold;
+        _badgeText.color     = ColNameText;
+        _badgeText.alignment = TextAnchor.MiddleLeft;
 
         // ── Body text ─────────────────────────────────────────────────────────
         Text body = Child<Text>("Body", bg.transform);
