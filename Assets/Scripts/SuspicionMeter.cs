@@ -10,10 +10,10 @@ public class SuspicionMeter : MonoBehaviour
 {
     public static SuspicionMeter Instance { get; private set; }
 
-    public float fillRate      = 0.07f;  
+    public float fillRate      = 0.04f;  
     public float drainRate     = 0.13f;  
     public float catchThreshold = 1f; 
-    public float watcherBonus  = 0.25f;  
+    public float watcherBonus  = 0.18f;  
     
 
     private Vector2 barOffset   = new Vector2(0f, 0.8f);
@@ -29,6 +29,7 @@ public class SuspicionMeter : MonoBehaviour
     private TeacherVisionCone  _teacher;
     private bool               _alertActive    = false;
     private bool               _dialoguePlayed = false;   // fires only once ever
+    private bool               _hasRowPenalty  = false;   // set by RowZone each frame
     private const float        AlertThreshold  = 0.5f;
 
     private Transform      _barRoot;
@@ -63,16 +64,21 @@ public class SuspicionMeter : MonoBehaviour
     {
         if (_player == null) return;
 
-        if (_player.IsStanding)
+        if (_player.IsStanding || _hasRowPenalty)
         {
             // Always fills while standing; watchers add bonus speed
-            _suspicion += (fillRate + watcherBonus * _watchers) * Time.deltaTime;
+            // If seated but in a dangerous row, fills at base speed
+            float bonus = _player.IsStanding ? (watcherBonus * _watchers) : 0f;
+            _suspicion += (fillRate + bonus) * Time.deltaTime;
         }
         else
         {
-            // Drain while seated
+            // Drain while safely seated
             _suspicion -= drainRate * Time.deltaTime;
         }
+
+        // Reset the flag for the next frame's physics step
+        _hasRowPenalty = false;
 
         _suspicion = Mathf.Clamp01(_suspicion);
         
@@ -101,6 +107,7 @@ public class SuspicionMeter : MonoBehaviour
     // ── public API ───────────────────────────────────────────────────────────
     public void RegisterWatcher()   => _watchers++;
     public void UnregisterWatcher() => _watchers = Mathf.Max(0, _watchers - 1);
+    public void AddRowPenalty()     => _hasRowPenalty = true;
 
     // ── bar building ─────────────────────────────────────────────────────────
     void BuildBar(Transform parent)

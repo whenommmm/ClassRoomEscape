@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 7016535108220863346}
   - component: {fileID: 1018292791994877279}
   - component: {fileID: 3178702880479696847}
+  - component: {fileID: 3133988459240167433}
   m_Layer: 0
   m_Name: Teacher
   m_TagString: Untagged
@@ -174,7 +175,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbc2609e046294cdd8f46277ae568ee9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraDetection
-  detectionTime: 1.5
   alertColor: {r: 1, g: 0, b: 0, a: 0.4}
 --- !u!114 &1018292791994877279
 MonoBehaviour:
@@ -192,9 +192,13 @@ MonoBehaviour:
   coneRange: 7.35
   rayCount: 217
   coneColor: {r: 1, g: 0.6, b: 0, a: 0.35}
+  alertColor: {r: 1, g: 0.05, b: 0.05, a: 0.55}
   sweepAngle: 45
   sweepSpeed: 20
   pauseDuration: 1
+  alertWidth: 1.35
+  roomMin: {x: -5.5, y: -4}
+  roomMax: {x: 6, y: 4.5}
 --- !u!95 &3178702880479696847
 Animator:
   serializedVersion: 7
@@ -217,3 +221,18 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &3133988459240167433
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5341265169442772562}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99c8d6711e125412cbbe140df9ec6133, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TeacherInspection
+  inspectionInterval: 10
+  warningDuration: 1.5
+  dangerDuration: 5
