@@ -30,7 +30,9 @@ public class SuspicionMeter : MonoBehaviour
     private bool               _alertActive    = false;
     private bool               _dialoguePlayed = false;   // fires only once ever
     private bool               _hasRowPenalty  = false;   // set by RowZone each frame
-    private const float        AlertThreshold  = 0.5f;
+    private const float        AlertThreshold  = 0.4f;
+
+    public float CurrentSuspicion => _suspicion;
 
     private Transform      _barRoot;
     private SpriteRenderer _bgSr;

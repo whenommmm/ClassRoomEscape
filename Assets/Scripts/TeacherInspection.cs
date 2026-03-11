@@ -12,11 +12,14 @@ public class TeacherInspection : MonoBehaviour
     public float    inspectionInterval = 10f;  // Seconds between row picks
     public float    warningDuration    = 1.5f; // Seconds the row glows orange before danger
     public float    dangerDuration     = 5f;   // Seconds the row is dangerous (red)
+    public float    minimumSuspicion   = 0.70f; // Only trigger if suspicion is at or above this
 
     private RowZone[] _allRows;
+    private PlayerMovement _player;
 
     private void Start()
     {
+        _player = FindFirstObjectByType<PlayerMovement>();
         // Find all row zones in the scene once at startup
         _allRows = FindObjectsByType<RowZone>(FindObjectsSortMode.None);
         StartCoroutine(InspectionRoutine());
@@ -32,32 +35,30 @@ public class TeacherInspection : MonoBehaviour
             // Wait 10 seconds before the next inspection starts
             yield return new WaitForSeconds(inspectionInterval);
 
-            // 1. Pick a RowType (0=First, 1=Middle, 2=Last)
-            RowType pickedType = (RowType)Random.Range(0, 3);
-            
-            // 2. Filter all rows to just those matching the picked type
-            List<RowZone> matchingRows = new List<RowZone>();
+            if (_player == null || SuspicionMeter.Instance == null) continue;
+
+            // Only inspect if suspicion is high enough
+            if (SuspicionMeter.Instance.CurrentSuspicion < minimumSuspicion) continue;
+
+            // Find the closest row to the player
+            RowZone targetRow = null;
+            float closestDist = float.MaxValue;
+
             foreach (var row in _allRows)
             {
-                if (row.rowType == pickedType) matchingRows.Add(row);
+                // Measure distance to row center
+                float dist = Vector2.Distance(_player.transform.position, row.transform.position);
+                if (dist < closestDist)
+                {
+                    closestDist = dist;
+                    targetRow   = row;
+                }
             }
 
-            RowZone targetRow;
+            if (targetRow == null) continue;
 
-            // 3. Pick one specific row from the matching group
-            // Fallback: If the user didn't setup all 3 enums in the scene, just pick any random row so we don't skip entirely
-            if (matchingRows.Count > 0)
-            {
-                targetRow = matchingRows[Random.Range(0, matchingRows.Count)];
-            }
-            else
-            {
-                targetRow = _allRows[Random.Range(0, _allRows.Length)];
-                pickedType = targetRow.rowType; // Update the type so the dialogue matches
-            }
-
-            // 4. Announce via Dialogue
-            string rowName = pickedType switch
+            // Announce via Dialogue using the closest row's type
+            string rowName = targetRow.rowType switch
             {
                 RowType.First  => "Front row",
                 RowType.Middle => "Middle row",
