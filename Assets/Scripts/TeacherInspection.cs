@@ -9,40 +9,36 @@ using System.Collections.Generic;
 public class TeacherInspection : MonoBehaviour
 {
     [Header("Inspection Settings")]
-    public float    inspectionInterval = 10f;  // Seconds between row picks
     public float    warningDuration    = 1.5f; // Seconds the row glows orange before danger
     public float    dangerDuration     = 5f;   // Seconds the row is dangerous (red)
-    public float    minimumSuspicion   = 0.70f; // Only trigger if suspicion is at or above this
 
     private RowZone[] _allRows;
     private PlayerMovement _player;
+    private bool _isInspecting = false;
 
     private void Start()
     {
         _player = FindFirstObjectByType<PlayerMovement>();
         // Find all row zones in the scene once at startup
         _allRows = FindObjectsByType<RowZone>(FindObjectsSortMode.None);
+    }
+
+    public void TriggerInspection()
+    {
+        if (_isInspecting) return;
         StartCoroutine(InspectionRoutine());
     }
 
     private IEnumerator InspectionRoutine()
     {
-        if (_allRows == null || _allRows.Length == 0)
+        if (_allRows == null || _allRows.Length == 0 || _player == null)
             yield break;
 
-        while (true)
-        {
-            // Wait 10 seconds before the next inspection starts
-            yield return new WaitForSeconds(inspectionInterval);
+        _isInspecting = true;
 
-            if (_player == null || SuspicionMeter.Instance == null) continue;
-
-            // Only inspect if suspicion is high enough
-            if (SuspicionMeter.Instance.CurrentSuspicion < minimumSuspicion) continue;
-
-            // Find the closest row to the player
-            RowZone targetRow = null;
-            float closestDist = float.MaxValue;
+        // Find the closest row to the player
+        RowZone targetRow = null;
+        float closestDist = float.MaxValue;
 
             foreach (var row in _allRows)
             {
@@ -78,5 +74,12 @@ public class TeacherInspection : MonoBehaviour
             // 7. Cooldown / Reset
             targetRow.SetState(isWarning: false, isDangerous: false);
         }
+        else
+        {
+            // Safety break if it somehow failed
+            yield return null;
+        }
+
+        _isInspecting = false;
     }
 }

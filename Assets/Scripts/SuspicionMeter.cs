@@ -30,6 +30,7 @@ public class SuspicionMeter : MonoBehaviour
     private bool               _alertActive    = false;
     private bool               _dialoguePlayed = false;   // fires only once ever
     private bool               _hasRowPenalty  = false;   // set by RowZone each frame
+    private bool               _inspectionTriggered = false; // ensures row inspection triggers once per 70% threshold crossing
     private const float        AlertThreshold  = 0.4f;
 
     public float CurrentSuspicion => _suspicion;
@@ -98,6 +99,18 @@ public class SuspicionMeter : MonoBehaviour
                 _dialoguePlayed = true;
                 DialogueManager.Instance?.ShowDialogue("Sit the FUCK down!");
             }
+        }
+
+        // Trigger Row Inspection at 70% suspicion
+        bool shouldInspect = _suspicion >= 0.7f;
+        if (shouldInspect && !_inspectionTriggered)
+        {
+            _inspectionTriggered = true;
+            FindFirstObjectByType<TeacherInspection>()?.TriggerInspection();
+        }
+        else if (!shouldInspect)
+        {
+            _inspectionTriggered = false;
         }
 
         UpdateBar();
