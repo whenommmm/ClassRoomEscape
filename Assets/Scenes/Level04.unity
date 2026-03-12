@@ -1829,10 +1829,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 421397047277e4f73b9af8af48141e93, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SuspicionMeter
-  fillRate: 0.08
-  drainRate: 0.15
-  catchThreshold: 1
-  watcherBonus: 0.25
 --- !u!4 &1922262925
 Transform:
   m_ObjectHideFlags: 0
