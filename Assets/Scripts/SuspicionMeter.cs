@@ -31,6 +31,7 @@ public class SuspicionMeter : MonoBehaviour
     private bool               _dialoguePlayed = false;   // fires only once ever
     private bool               _hasRowPenalty  = false;   // set by RowZone each frame
     private bool               _inspectionTriggered = false; // ensures row inspection triggers once per 70% threshold crossing
+    private float              _pauseTimer     = 0f;      // grace period
     private const float        AlertThreshold  = 0.4f;
 
     public float CurrentSuspicion => _suspicion;
@@ -67,12 +68,20 @@ public class SuspicionMeter : MonoBehaviour
     {
         if (_player == null) return;
 
+        if (_pauseTimer > 0f)
+        {
+            _pauseTimer -= Time.deltaTime;
+        }
+
         if (_player.IsStanding || _hasRowPenalty)
         {
-            // Always fills while standing; watchers add bonus speed
-            // If seated but in a dangerous row, fills at base speed
-            float bonus = _player.IsStanding ? (watcherBonus * _watchers) : 0f;
-            _suspicion += (fillRate + bonus) * Time.deltaTime;
+            if (_pauseTimer <= 0f)
+            {
+                // Always fills while standing; watchers add bonus speed
+                // If seated but in a dangerous row, fills at base speed
+                float bonus = _player.IsStanding ? (watcherBonus * _watchers) : 0f;
+                _suspicion += (fillRate + bonus) * Time.deltaTime;
+            }
         }
         else
         {
@@ -93,10 +102,11 @@ public class SuspicionMeter : MonoBehaviour
             _alertActive = shouldAlert;
             _teacher?.SetAlertMode(_alertActive, _player.transform);
 
-            // Dialogue — only the very first time ever
+            // Dialogue and grace period — only the very first time ever
             if (_alertActive && !_dialoguePlayed)
             {
                 _dialoguePlayed = true;
+                _pauseTimer = 3f; // 3 second grace period before tracking punishes them
                 DialogueManager.Instance?.ShowDialogue("Sit the FUCK down!");
             }
         }

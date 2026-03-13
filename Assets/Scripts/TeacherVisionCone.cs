@@ -39,6 +39,7 @@ public class TeacherVisionCone : MonoBehaviour
     private float             _startAngle;
 
     private bool      _alertMode = false;
+    private bool      _distractedMode = false;
     private Transform _playerTransform;
 
     // ── lifecycle ─────────────────────────────────────────────────────────────
@@ -77,6 +78,8 @@ public class TeacherVisionCone : MonoBehaviour
 
     void Update()
     {
+        if (_distractedMode) return;
+
         if (_alertMode && _playerTransform != null)
         {
             // Rotate pivot to face player
@@ -123,6 +126,48 @@ public class TeacherVisionCone : MonoBehaviour
             _mr.material.color = coneColor;
             _startAngle = _conePivot.eulerAngles.z;
             StartCoroutine(SweepRoutine());
+        }
+    }
+
+    /// <summary>
+    /// Forces the teacher to look straight down and stop tracking/sweeping
+    /// during a row inspection event.
+    /// </summary>
+    public void SetDistracted(bool distracted)
+    {
+        if (_distractedMode == distracted) return;
+        _distractedMode = distracted;
+
+        if (distracted)
+        {
+            // Look straight ahead
+            _conePivot.rotation = Quaternion.Euler(0, 0, 0);
+            
+            // Turn off tracker and sweep coroutines
+            StopAllCoroutines();
+            
+            // Revert to normal wide cone for the inspection
+            BuildCone();
+            _mr.material.color = coneColor;
+        }
+        else
+        {
+            // Restore whatever mode she was in previously
+            if (_alertMode)
+            {
+                float dist = _playerTransform != null 
+                    ? Vector2.Distance(transform.position, _playerTransform.position)
+                    : coneRange;
+                BuildRectangle(dist);
+                _mr.material.color = alertColor;
+            }
+            else
+            {
+                BuildCone();
+                _mr.material.color = coneColor;
+                _startAngle = _conePivot.eulerAngles.z;
+                StartCoroutine(SweepRoutine());
+            }
         }
     }
 
