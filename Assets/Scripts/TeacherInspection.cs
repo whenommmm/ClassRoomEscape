@@ -10,7 +10,6 @@ public class TeacherInspection : MonoBehaviour
 {
     [Header("Inspection Settings")]
     public float    warningDuration    = 1.5f; // Seconds the row glows orange before danger
-    public float    dangerDuration     = 5f;   // Seconds the row is dangerous (red)
 
     private RowZone[] _allRows;
     private PlayerMovement _player;
@@ -66,15 +65,14 @@ public class TeacherInspection : MonoBehaviour
         yield return new WaitForSeconds(warningDuration);
 
         // 6. Danger Phase (Red Glow - penalizes sitting players)
+        // This phase continues INDEFINITELY as long as the player is inside.
+        // It only ends if the player steps out and stays out for 2 continuous seconds.
         targetRow.SetState(isWarning: false, isDangerous: true);
 
-        float activeTimer = 0f;
         float escapeTimer = 0f;
 
-        while (activeTimer < dangerDuration)
+        while (true)
         {
-            activeTimer += Time.deltaTime;
-
             if (!targetRow.PlayerIsInside)
             {
                 escapeTimer += Time.deltaTime;
@@ -86,7 +84,7 @@ public class TeacherInspection : MonoBehaviour
             }
             else
             {
-                // Player stepped back in, reset their escape progress
+                // Player stepped back in (or never left), reset their escape progress
                 escapeTimer = 0f;
             }
 
