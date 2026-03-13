@@ -10,7 +10,7 @@ public class SuspicionMeter : MonoBehaviour
 {
     public static SuspicionMeter Instance { get; private set; }
 
-    private float watcherBonus  = 0.15f;  
+    private float watcherBonus  = 0.05f;  // Lowered from 0.15f to slow down the 40% laser spike
     private float fillRate      = 0.04f;  
     private float drainRate     = 0.13f;  
     private float catchThreshold = 1f; 
@@ -31,6 +31,7 @@ public class SuspicionMeter : MonoBehaviour
     private bool               _dialoguePlayed = false;   // fires only once ever
     private bool               _hasRowPenalty  = false;   // set by RowZone each frame
     private bool               _inspectionTriggered = false; // ensures row inspection triggers once per 70% threshold crossing
+    private float              _suspicionFreezeTimer = 0f; // Pauses accumulation for fairness
     private const float        AlertThreshold  = 0.4f;
 
     public float CurrentSuspicion => _suspicion;
@@ -67,16 +68,25 @@ public class SuspicionMeter : MonoBehaviour
     {
         if (_player == null) return;
 
+        if (_suspicionFreezeTimer > 0f)
+        {
+            _suspicionFreezeTimer -= Time.deltaTime;
+        }
+
         if (_player.IsStanding || _hasRowPenalty)
         {
-            // Always fills while standing; watchers add bonus speed
-            // If seated but in a dangerous row, fills at base speed
-            float bonus = _player.IsStanding ? (watcherBonus * _watchers) : 0f;
-            _suspicion += (fillRate + bonus) * Time.deltaTime;
+            // Only accumulate suspicion if the freeze timer isn't active
+            if (_suspicionFreezeTimer <= 0f)
+            {
+                // Always fills while standing; watchers add bonus speed
+                // If seated but in a dangerous row, fills at base speed
+                float bonus = _player.IsStanding ? (watcherBonus * _watchers) : 0f;
+                _suspicion += (fillRate + bonus) * Time.deltaTime;
+            }
         }
         else
         {
-            // Drain while safely seated
+            // Drain while safely seated (drain still works even if frozen)
             _suspicion -= drainRate * Time.deltaTime;
         }
 
@@ -93,11 +103,17 @@ public class SuspicionMeter : MonoBehaviour
             _alertActive = shouldAlert;
             _teacher?.SetAlertMode(_alertActive, _player.transform);
 
-            // Dialogue — only the very first time ever
-            if (_alertActive && !_dialoguePlayed)
+            if (_alertActive)
             {
-                _dialoguePlayed = true;
-                DialogueManager.Instance?.ShowDialogue("Sit the FUCK down!");
+                // Give the player a 3.5-second freeze on suspicion accumulation to react to the alert!
+                _suspicionFreezeTimer = 3.5f;
+
+                // Dialogue — only the very first time ever
+                if (!_dialoguePlayed)
+                {
+                    _dialoguePlayed = true;
+                    DialogueManager.Instance?.ShowDialogue("Sit the FUCK down!");
+                }
             }
         }
 
