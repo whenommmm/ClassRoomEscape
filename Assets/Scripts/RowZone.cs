@@ -1,12 +1,5 @@
 using UnityEngine;
 
-public enum RowType
-{
-    First,
-    Middle,
-    Last
-}
-
 /// <summary>
 /// Attach to a trigger BoxCollider2D covering a row of desks.
 /// A child SpriteRenderer should be assigned to act as the red "glow" warning.
@@ -14,7 +7,6 @@ public enum RowType
 public class RowZone : MonoBehaviour
 {
     [Header("Row Configuration")]
-    public RowType rowType;
     public SpriteRenderer glowSprite;
     public Color warningColor = new Color(1f, 0.4f, 0f, 0.5f); // Orange for incoming warning
     public Color dangerColor = new Color(1f, 0f, 0f, 0.5f);    // Red for active danger

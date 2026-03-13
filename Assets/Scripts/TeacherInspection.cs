@@ -58,15 +58,8 @@ public class TeacherInspection : MonoBehaviour
             yield break;
         }
 
-        // Announce via Dialogue using the closest row's type
-        string rowName = targetRow.rowType switch
-        {
-            RowType.First  => "Front row",
-            RowType.Middle => "Middle row",
-            RowType.Last   => "Back row",
-            _              => "That row"
-        };
-        DialogueManager.Instance?.ShowDialogue($"{rowName}, sit properly and keep quiet!", "Teacher");
+        // Announce via Dialogue using the universal row name
+        DialogueManager.Instance?.ShowDialogue("That row, sit properly and keep quiet!", "Teacher");
 
         // 5. Warning Phase (Orange Glow)
         targetRow.SetState(isWarning: true, isDangerous: false);
