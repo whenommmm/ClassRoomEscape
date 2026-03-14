@@ -9,6 +9,7 @@ using UnityEngine;
 public class CameraDetection : MonoBehaviour
 {
     [Header("Visual Alert")]
+    public Color defaultColor = new Color(1f, 0.6f, 0f, 0.35f); // semi-transparent orange
     public Color alertColor = new Color(1f, 0f, 0f, 0.4f); // semi-transparent red
 
     private PlayerMovement _trackedPlayer;
@@ -30,7 +31,11 @@ public class CameraDetection : MonoBehaviour
 
         // Camera: color the SpriteRenderer on this same object
         _sr = GetComponent<SpriteRenderer>();
-        if (_sr != null) _defaultColor = _sr.color;
+        if (_sr != null)
+        {
+            _sr.color = defaultColor;
+            _defaultColor = _sr.color;
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)

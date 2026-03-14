@@ -84,7 +84,7 @@ SpriteRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 0.646554, g: 1, b: 0.4764151, a: 0.09803922}
+  m_Color: {r: 0.9622642, g: 0.59905416, b: 0.104396604, a: 0.40392157}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -105,7 +105,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbc2609e046294cdd8f46277ae568ee9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraDetection
-  detectionTime: 1.5
+  defaultColor: {r: 1, g: 0.6, b: 0, a: 0.35}
   alertColor: {r: 1, g: 0, b: 0, a: 0.4}
 --- !u!61 &3274604394292376399
 BoxCollider2D:
