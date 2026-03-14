@@ -170,6 +170,10 @@ public class MainMenuManager : MonoBehaviour
     {
         GameObject shadow = CreateRect(name+"Shadow", parent, size, ColShadow);
         shadow.GetComponent<RectTransform>().anchoredPosition = pos + new Vector2(6,-6);
+        RectTransform srt = shadow.GetComponent<RectTransform>();
+        srt.anchorMin = new Vector2(0.5f,0.5f);
+        srt.anchorMax = new Vector2(0.5f,0.5f);
+        srt.pivot = new Vector2(0.5f,0.5f);
 
         GameObject btnGo = CreateButtonVisuals(name, parent, size, pos, true);
 
@@ -189,6 +193,11 @@ public class MainMenuManager : MonoBehaviour
         go.transform.SetParent(parent,false);
 
         RectTransform rt = go.AddComponent<RectTransform>();
+
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+
         rt.sizeDelta = size;
         rt.anchoredPosition = pos;
 
