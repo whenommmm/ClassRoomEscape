@@ -3,28 +3,25 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
-/// <summary>
-/// Programmatically creates the Main Menu and Level Selection UI for "Class Escape".
-/// This ensures exact, minimal pixel-art aesthetic with muted classroom colors
-/// without requiring manual editor setup for complex canvases.
-/// Just attach to an empty GameObject in your Main Menu scene and hit Play!
-/// </summary>
 public class MainMenuManager : MonoBehaviour
 {
     [Header("UI Settings")]
-    [Tooltip("Leave empty to use Unity's default font, or drag a pixel font here (like 8-bit limit).")]
     public Font customFont;
     public int totalLevels = 5;
 
-    // --- Muted Classroom Stealth Palette ---
-    private static readonly Color ColNavyBorder  = new Color(0.08f, 0.10f, 0.16f, 1f); // Dark navy
-    private static readonly Color ColWoodFloor   = new Color(0.18f, 0.15f, 0.12f, 1f); // Dimmed wood
-    private static readonly Color ColDeskSurface = new Color(0.72f, 0.65f, 0.53f, 1f); // Beige desks
-    private static readonly Color ColDeskOutline = new Color(0.40f, 0.33f, 0.25f, 1f); // Desk border
-    private static readonly Color ColHighlight   = new Color(0.85f, 0.45f, 0.15f, 1f); // Subtle orange
-    private static readonly Color ColTextDark    = new Color(0.12f, 0.10f, 0.08f, 1f); // Ink
-    private static readonly Color ColTextLight   = new Color(0.92f, 0.88f, 0.82f, 1f); // Chalk/Paper
-    private static readonly Color ColShadow      = new Color(0.04f, 0.04f, 0.06f, 0.6f); // Soft drop shadow
+    // --- Improved Classroom Palette ---
+    private static readonly Color ColNavyBorder  = new Color(0.05f, 0.07f, 0.12f, 1f);
+    private static readonly Color ColWoodFloor   = new Color(0.20f, 0.16f, 0.12f, 1f);
+
+    private static readonly Color ColDeskSurface = new Color(0.82f, 0.75f, 0.62f, 1f);
+    private static readonly Color ColDeskOutline = new Color(0.34f, 0.26f, 0.18f, 1f);
+
+    private static readonly Color ColHighlight   = new Color(0.95f, 0.55f, 0.18f, 1f);
+
+    private static readonly Color ColTextDark    = new Color(0.10f, 0.08f, 0.05f, 1f);
+    private static readonly Color ColTextLight   = new Color(0.96f, 0.94f, 0.88f, 1f);
+
+    private static readonly Color ColShadow      = new Color(0f, 0f, 0f, 0.55f);
 
     private GameObject _mainMenuPanel;
     private GameObject _levelSelectPanel;
@@ -39,130 +36,108 @@ public class MainMenuManager : MonoBehaviour
 
     private void BuildUI()
     {
-        // 1. Setup Master Canvas
         GameObject canvasGo = new GameObject("MainMenuCanvas");
         Canvas canvas = canvasGo.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 0;
 
         CanvasScaler scaler = canvasGo.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920, 1080);
-        scaler.matchWidthOrHeight = 0.5f;
 
         canvasGo.AddComponent<GraphicRaycaster>();
 
-        // 2. Setup Event System (REQUIRED for buttons to work!)
         if (FindFirstObjectByType<EventSystem>() == null)
         {
-            GameObject eventSystemGo = new GameObject("EventSystem");
-            eventSystemGo.AddComponent<EventSystem>();
-            eventSystemGo.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+            GameObject es = new GameObject("EventSystem");
+            es.AddComponent<EventSystem>();
+            es.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
         }
 
-        // 3. Background Layers (Simulating Classroom Floor)
-        GameObject bgNavy = CreateRect("NavyBorder", canvasGo.transform, Vector2.zero, ColNavyBorder, stretch: true);
-        // Dimmed inner floor with a 40px padding creating the navy border
-        GameObject bgFloor = CreateRect("WoodFloor", bgNavy.transform, new Vector2(-80f, -80f), ColWoodFloor, stretch: true);
+        GameObject bgNavy = CreateRect("Border", canvasGo.transform, Vector2.zero, ColNavyBorder, true);
+        GameObject bgFloor = CreateRect("Floor", bgNavy.transform, new Vector2(-80, -80), ColWoodFloor, true);
 
-        // ============================================
-        // 3. MAIN MENU PANEL
-        // ============================================
-        _mainMenuPanel = CreateRect("MainMenuPanel", bgFloor.transform, Vector2.zero, Color.clear, stretch: true);
-        
-        // Title text + Shadow
-        GameObject ts = CreateText("TitleShadow", _mainMenuPanel.transform, "CLASS ESCAPE", 130, ColShadow, new Vector2(6f, 294f));
-        GameObject title = CreateText("Title", _mainMenuPanel.transform, "CLASS ESCAPE", 130, ColTextLight, new Vector2(0f, 300f));
-        
-        // Buttons
-        CreateButton("Btn_Play", _mainMenuPanel.transform, "PLAY", new Vector2(400, 90), new Vector2(0, 0), OnPlayClicked);
-        CreateButton("Btn_Quit", _mainMenuPanel.transform, "QUIT", new Vector2(400, 90), new Vector2(0, -140), OnQuitClicked);
+        // MAIN MENU
+        _mainMenuPanel = CreateRect("MainMenuPanel", bgFloor.transform, Vector2.zero, Color.clear, true);
 
+        CreateText("TitleShadow", _mainMenuPanel.transform, "CLASS ESCAPE", 130, ColShadow, new Vector2(4, 296));
+        CreateText("Title", _mainMenuPanel.transform, "CLASS ESCAPE", 130, ColTextLight, new Vector2(0, 300));
 
-        // ============================================
-        // 4. LEVEL SELECT PANEL
-        // ============================================
-        _levelSelectPanel = CreateRect("LevelSelectPanel", bgFloor.transform, Vector2.zero, Color.clear, stretch: true);
-        
-        CreateText("LSTitleShadow", _levelSelectPanel.transform, "SELECT LEVEL", 90, ColShadow, new Vector2(6f, 346f));
-        CreateText("LSTitle", _levelSelectPanel.transform, "SELECT LEVEL", 90, ColTextLight, new Vector2(0, 350f));
+        CreateButton("Play", _mainMenuPanel.transform, "PLAY", new Vector2(400, 90), new Vector2(0, 0), OnPlayClicked);
+        CreateButton("Quit", _mainMenuPanel.transform, "QUIT", new Vector2(400, 90), new Vector2(0, -140), OnQuitClicked);
+
+        // LEVEL SELECT
+        _levelSelectPanel = CreateRect("LevelSelectPanel", bgFloor.transform, Vector2.zero, Color.clear, true);
+
+        CreateText("SelectShadow", _levelSelectPanel.transform, "SELECT LEVEL", 90, ColShadow, new Vector2(4, 346));
+        CreateText("Select", _levelSelectPanel.transform, "SELECT LEVEL", 90, ColTextLight, new Vector2(0, 350));
 
         BuildLevelGrid(_levelSelectPanel.transform);
 
-        CreateButton("Btn_Back", _levelSelectPanel.transform, "BACK", new Vector2(300, 80), new Vector2(0, -420), OnBackClicked);
+        CreateButton("Back", _levelSelectPanel.transform, "BACK", new Vector2(300, 80), new Vector2(0, -420), OnBackClicked);
 
-        // Initialize Panel States
         _mainMenuPanel.SetActive(true);
         _levelSelectPanel.SetActive(false);
     }
 
     private void BuildLevelGrid(Transform parent)
     {
-        // 3 levels on top row, 2 centered below
-        Vector2[] positions = new Vector2[]
+        Vector2[] positions =
         {
-            new Vector2(-320, 80), new Vector2(0, 80), new Vector2(320, 80), // Row 1
-            new Vector2(-160, -180), new Vector2(160, -180)                  // Row 2
+            new Vector2(-320,80), new Vector2(0,80), new Vector2(320,80),
+            new Vector2(-160,-180), new Vector2(160,-180)
         };
 
-        // Determine unlocked state based on standard PlayerPrefs
-        // For testing, defaults to unlocking Level 1 only.
         int highestUnlocked = PlayerPrefs.GetInt("HighestLevelUnlocked", 1);
-        int maxCompleted = highestUnlocked - 1; 
+        int maxCompleted = highestUnlocked - 1;
 
         for (int i = 0; i < totalLevels; i++)
         {
             int levelNum = i + 1;
-            bool isUnlocked = levelNum <= highestUnlocked;
-            bool isCompleted = levelNum <= maxCompleted;
+            bool unlocked = levelNum <= highestUnlocked;
+            bool completed = levelNum <= maxCompleted;
 
-            Vector2 pos = (i < positions.Length) ? positions[i] : new Vector2(0, 0);
-
-            CreateLevelTile(parent, levelNum, pos, isUnlocked, isCompleted);
+            CreateLevelTile(parent, levelNum, positions[i], unlocked, completed);
         }
     }
 
-    private void CreateLevelTile(Transform parent, int levelNum, Vector2 pos, bool isUnlocked, bool isCompleted)
+    private void CreateLevelTile(Transform parent, int levelNum, Vector2 pos, bool unlocked, bool completed)
     {
-        GameObject tile = new GameObject($"Tile_{levelNum}");
+        GameObject tile = new GameObject("Tile" + levelNum);
         tile.transform.SetParent(parent, false);
+
         RectTransform rt = tile.AddComponent<RectTransform>();
-        rt.sizeDelta = new Vector2(220, 220);
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.sizeDelta = new Vector2(220,220);
         rt.anchoredPosition = pos;
 
-        // Tile Drop Shadow
-        GameObject shadow = CreateRect("Shadow", tile.transform, new Vector2(220, 220), ColShadow);
-        shadow.GetComponent<RectTransform>().anchoredPosition = new Vector2(8f, -8f);
+        GameObject shadow = CreateRect("Shadow", tile.transform, new Vector2(220,220), ColShadow);
+        shadow.GetComponent<RectTransform>().anchoredPosition = new Vector2(8,-8);
 
-        // Base Button Visuals
-        GameObject btnGo = CreateButtonVisuals($"Btn_{levelNum}", tile.transform, new Vector2(220, 220), Vector2.zero, isUnlocked);
-        
-        // Level Number Text
-        Color textColor = isUnlocked ? ColTextDark : new Color(0.3f, 0.25f, 0.2f, 1f);
-        CreateText("NumberText", btnGo.transform, levelNum.ToString(), 90, textColor, Vector2.zero);
+        GameObject btnGo = CreateButtonVisuals("Button", tile.transform, new Vector2(220,220), Vector2.zero, unlocked);
 
-        if (!isUnlocked)
+        Color textColor = unlocked ? ColTextDark : new Color(0.3f,0.25f,0.2f,1f);
+        CreateText("Number", btnGo.transform, levelNum.ToString(), 90, textColor, Vector2.zero);
+
+        if (!unlocked)
         {
-            // Locked UI (Dark overlay + Text placeholder for lock)
-            CreateRect("LockOverlay", btnGo.transform, new Vector2(-12f, -12f), new Color(0.04f, 0.06f, 0.08f, 0.6f), stretch: true);
-            CreateText("LockText", btnGo.transform, "[LOCKED]", 28, new Color(0.8f, 0.7f, 0.6f, 0.8f), new Vector2(0, -60f));
+            CreateRect("LockOverlay", btnGo.transform, new Vector2(-12,-12), new Color(0.02f,0.03f,0.05f,0.75f), true);
+            CreateText("Locked", btnGo.transform, "[LOCKED]", 28, ColTextLight, new Vector2(0,-60));
         }
-        else if (isCompleted)
+        else if (completed)
         {
-            // Completed UI (Subtle highlight + Checkmark)
-            CreateRect("HighlightOverlay", btnGo.transform, new Vector2(-12f, -12f), new Color(0.4f, 0.9f, 0.3f, 0.08f), stretch: true);
-            CreateText("CheckMark", btnGo.transform, "v", 50, new Color(0.2f, 0.6f, 0.2f, 0.8f), new Vector2(65f, -65f));
+            CreateRect("CompleteOverlay", btnGo.transform, new Vector2(-12,-12), new Color(0.35f,0.75f,0.35f,0.15f), true);
+            CreateText("Check", btnGo.transform, "✓", 50, new Color(0.2f,0.6f,0.2f), new Vector2(65,-65));
         }
 
-        if (isUnlocked)
+        if (unlocked)
         {
             Button btn = btnGo.AddComponent<Button>();
             btn.onClick.AddListener(() => OnLevelSelected(levelNum));
             AddHoverEffect(btnGo, btnGo.GetComponent<Image>());
         }
     }
-
-    // ── Interaction Logic ──
 
     private void OnPlayClicked()
     {
@@ -172,7 +147,6 @@ public class MainMenuManager : MonoBehaviour
 
     private void OnQuitClicked()
     {
-        Debug.Log("QUIT GAME");
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #else
@@ -186,91 +160,84 @@ public class MainMenuManager : MonoBehaviour
         _mainMenuPanel.SetActive(true);
     }
 
-    private void OnLevelSelected(int levelNum)
+    private void OnLevelSelected(int level)
     {
-        Debug.Log($"Loading Scene: Level0{levelNum}");
-        // Format to Level01, Level02 etc based on the screenshot
-        SceneManager.LoadScene($"Level{levelNum:D2}");
+        // level 1 = build index 2, level 2 = build index 3, etc.
+        SceneManager.LoadScene(level + 1);
     }
 
-    // ── UI Factory Helpers ──
-
-    private GameObject CreateButton(string name, Transform parent, string text, Vector2 size, Vector2 pos, UnityEngine.Events.UnityAction onClick)
+    private GameObject CreateButton(string name, Transform parent, string text, Vector2 size, Vector2 pos, UnityEngine.Events.UnityAction action)
     {
-        // 1. Drop shadow
-        GameObject shadow = CreateRect(name + "_Shadow", parent, size, ColShadow);
-        shadow.GetComponent<RectTransform>().anchoredPosition = pos + new Vector2(6f, -6f);
+        GameObject shadow = CreateRect(name+"Shadow", parent, size, ColShadow);
+        shadow.GetComponent<RectTransform>().anchoredPosition = pos + new Vector2(6,-6);
 
-        // 2. Button Visuals (Border + Inner Beige)
         GameObject btnGo = CreateButtonVisuals(name, parent, size, pos, true);
-        
-        // 3. Text
+
         CreateText("Text", btnGo.transform, text, 48, ColTextDark, Vector2.zero);
 
-        // 4. Logic & Hover Effects
         Button btn = btnGo.AddComponent<Button>();
-        btn.onClick.AddListener(onClick);
+        btn.onClick.AddListener(action);
+
         AddHoverEffect(btnGo, btnGo.GetComponent<Image>());
 
         return btnGo;
     }
 
-    private GameObject CreateButtonVisuals(string name, Transform parent, Vector2 size, Vector2 pos, bool isEnabled)
+    private GameObject CreateButtonVisuals(string name, Transform parent, Vector2 size, Vector2 pos, bool enabled)
     {
-        GameObject btnGo = new GameObject(name);
-        btnGo.transform.SetParent(parent, false);
-        RectTransform rt = btnGo.AddComponent<RectTransform>();
+        GameObject go = new GameObject(name);
+        go.transform.SetParent(parent,false);
+
+        RectTransform rt = go.AddComponent<RectTransform>();
         rt.sizeDelta = size;
         rt.anchoredPosition = pos;
 
-        // Outer acts as the darker desk border/outline
-        Image img = btnGo.AddComponent<Image>();
+        Image img = go.AddComponent<Image>();
         img.color = ColDeskOutline;
 
-        // Inner acts as the flat beige desk surface (padded inwards by 6px -> sizeDelta -12)
-        Color surfaceColor = isEnabled ? ColDeskSurface : new Color(0.40f, 0.35f, 0.30f, 1f);
-        CreateRect("InnerSurface", btnGo.transform, new Vector2(-12f, -12f), surfaceColor, stretch: true);
+        Color innerColor = enabled ? ColDeskSurface : new Color(0.4f,0.35f,0.3f,1f);
+        CreateRect("InnerSurface", go.transform, new Vector2(-12,-12), innerColor, true);
 
-        return btnGo;
+        return go;
     }
 
     private void AddHoverEffect(GameObject target, Image baseImage)
     {
         EventTrigger trigger = target.AddComponent<EventTrigger>();
-        Image innerSurface = target.transform.Find("InnerSurface").GetComponent<Image>();
+        Image inner = target.transform.Find("InnerSurface").GetComponent<Image>();
 
-        // ON HOVER (Glowing subtle orange outline & brighter warmer inner surface)
-        EventTrigger.Entry entryHover = new EventTrigger.Entry();
-        entryHover.eventID = EventTriggerType.PointerEnter;
-        entryHover.callback.AddListener((data) => {
-            innerSurface.color = Color.Lerp(ColDeskSurface, Color.white, 0.4f); // Pop brightness
-            baseImage.color = ColHighlight; 
+        EventTrigger.Entry enter = new EventTrigger.Entry();
+        enter.eventID = EventTriggerType.PointerEnter;
+        enter.callback.AddListener((data) =>
+        {
+            inner.color = Color.Lerp(ColDeskSurface, ColHighlight, 0.25f);
+            baseImage.color = ColHighlight;
         });
-        trigger.triggers.Add(entryHover);
+        trigger.triggers.Add(enter);
 
-        // ON EXIT (Revert to desk colors)
-        EventTrigger.Entry exitHover = new EventTrigger.Entry();
-        exitHover.eventID = EventTriggerType.PointerExit;
-        exitHover.callback.AddListener((data) => {
-            innerSurface.color = ColDeskSurface;
-            baseImage.color = ColDeskOutline; 
+        EventTrigger.Entry exit = new EventTrigger.Entry();
+        exit.eventID = EventTriggerType.PointerExit;
+        exit.callback.AddListener((data) =>
+        {
+            inner.color = ColDeskSurface;
+            baseImage.color = ColDeskOutline;
         });
-        trigger.triggers.Add(exitHover);
+        trigger.triggers.Add(exit);
     }
 
-    private GameObject CreateRect(string name, Transform parent, Vector2 sizeDelta, Color color, bool stretch = false)
+    private GameObject CreateRect(string name, Transform parent, Vector2 sizeDelta, Color color, bool stretch=false)
     {
         GameObject go = new GameObject(name);
-        go.transform.SetParent(parent, false);
+        go.transform.SetParent(parent,false);
+
         RectTransform rt = go.AddComponent<RectTransform>();
 
-        if (stretch)
+        if(stretch)
         {
             rt.anchorMin = Vector2.zero;
             rt.anchorMax = Vector2.one;
-            // Negative sizeDelta creates an inset (padding).
-            rt.offsetMin = new Vector2(-sizeDelta.x / 2f, -sizeDelta.y / 2f); // bottom left padding
-            rt.offsetMax = new Vector2( sizeDelta.x / 2f,  sizeDelta.y / 2f); // top right padding
+            rt.offsetMin = new Vector2(-sizeDelta.x/2,-sizeDelta.y/2);
+            rt.offsetMax = new Vector2(sizeDelta.x/2,sizeDelta.y/2);
         }
         else
         {
@@ -279,15 +246,17 @@ public class MainMenuManager : MonoBehaviour
 
         Image img = go.AddComponent<Image>();
         img.color = color;
+
         return go;
     }
 
     private GameObject CreateText(string name, Transform parent, string text, int fontSize, Color color, Vector2 pos)
     {
         GameObject go = new GameObject(name);
-        go.transform.SetParent(parent, false);
+        go.transform.SetParent(parent,false);
+
         RectTransform rt = go.AddComponent<RectTransform>();
-        rt.sizeDelta = new Vector2(1000, 300); // generic large wrapper
+        rt.sizeDelta = new Vector2(1000,300);
         rt.anchoredPosition = pos;
 
         Text t = go.AddComponent<Text>();
@@ -296,8 +265,7 @@ public class MainMenuManager : MonoBehaviour
         t.fontSize = fontSize;
         t.color = color;
         t.alignment = TextAnchor.MiddleCenter;
-        
-        // Prevent layout overlapping pixel issues
+
         t.horizontalOverflow = HorizontalWrapMode.Overflow;
         t.verticalOverflow = VerticalWrapMode.Overflow;
 
