@@ -163,7 +163,7 @@ public class MainMenuManager : MonoBehaviour
     private void OnLevelSelected(int level)
     {
         // level 1 = build index 2, level 2 = build index 3, etc.
-        SceneManager.LoadScene(level + 1);
+        SceneManager.LoadScene(level);
     }
 
     private GameObject CreateButton(string name, Transform parent, string text, Vector2 size, Vector2 pos, UnityEngine.Events.UnityAction action)
