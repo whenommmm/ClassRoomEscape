@@ -15,6 +15,7 @@ public class TeacherInspection : MonoBehaviour
     private PlayerMovement _player;
     private TeacherVisionCone _teacherVision;
     private bool _isInspecting = false;
+    public bool IsInspecting => _isInspecting;
 
     private void Start()
     {

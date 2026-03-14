@@ -33,6 +33,7 @@ public class SuspicionMeter : MonoBehaviour
     private bool               _inspectionTriggered = false; // ensures row inspection triggers once per 70% threshold crossing
     private float              _pauseTimer     = 0f;      // grace period
     private const float        AlertThreshold  = 0.4f;
+    private TeacherInspection  _inspection;               // Ensures we can check if inspection is running
 
     public float CurrentSuspicion => _suspicion;
 
@@ -51,6 +52,7 @@ public class SuspicionMeter : MonoBehaviour
     {
         _player  = FindFirstObjectByType<PlayerMovement>();
         _teacher = FindFirstObjectByType<TeacherVisionCone>();
+        _inspection = FindFirstObjectByType<TeacherInspection>();
         if (_player != null)
             BuildBar(_player.transform);
 
@@ -95,8 +97,10 @@ public class SuspicionMeter : MonoBehaviour
         _suspicion = Mathf.Clamp01(_suspicion);
         
 
-        // Trigger teacher alert at 50% suspicion
-        bool shouldAlert = _suspicion >= AlertThreshold;
+        bool isInspecting = _inspection != null && _inspection.IsInspecting;
+
+        // Trigger teacher alert at 40% suspicion, UNLESS an inspection is actively taking over
+        bool shouldAlert = _suspicion >= AlertThreshold && !isInspecting;
         if (shouldAlert != _alertActive)
         {
             _alertActive = shouldAlert;

@@ -111,21 +111,27 @@ public class TeacherVisionCone : MonoBehaviour
         if (alert)
         {
             _playerTransform = player;
-            StopAllCoroutines();
-            float dist = player != null
-                ? Vector2.Distance(transform.position, player.position)
-                : coneRange;
-            BuildRectangle(dist);
-            _mr.material.color = alertColor;
+            if (!_distractedMode)
+            {
+                StopAllCoroutines();
+                float dist = player != null
+                    ? Vector2.Distance(transform.position, player.position)
+                    : coneRange;
+                BuildRectangle(dist);
+                _mr.material.color = alertColor;
+            }
         }
         else
         {
             _playerTransform = null;
-            BuildRectangle(coneRange); // reset to default range before switching back
-            BuildCone();
-            _mr.material.color = coneColor;
-            _startAngle = _conePivot.eulerAngles.z;
-            StartCoroutine(SweepRoutine());
+            if (!_distractedMode)
+            {
+                BuildRectangle(coneRange); // reset to default range before switching back
+                BuildCone();
+                _mr.material.color = coneColor;
+                _startAngle = _conePivot.eulerAngles.z;
+                StartCoroutine(SweepRoutine());
+            }
         }
     }
 
