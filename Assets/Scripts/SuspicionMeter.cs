@@ -11,7 +11,7 @@ public class SuspicionMeter : MonoBehaviour
     public static SuspicionMeter Instance { get; private set; }
 
     private float watcherBonus  = 0.13f;  
-    private float fillRate      = 0.04f;  
+    private float fillRate      = 0.07f;  
     private float drainRate     = 0.13f;  
     private float catchThreshold = 1f; 
     
