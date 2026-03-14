@@ -241,6 +241,11 @@ public class MainMenuManager : MonoBehaviour
 
         RectTransform rt = go.AddComponent<RectTransform>();
 
+        // ENFORCE CENTERING ON ALL GENERATED RECTS
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+
         if(stretch)
         {
             rt.anchorMin = Vector2.zero;
