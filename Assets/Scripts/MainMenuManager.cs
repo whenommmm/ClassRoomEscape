@@ -57,7 +57,7 @@ public class MainMenuManager : MonoBehaviour
         {
             GameObject eventSystemGo = new GameObject("EventSystem");
             eventSystemGo.AddComponent<EventSystem>();
-            eventSystemGo.AddComponent<StandaloneInputModule>();
+            eventSystemGo.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
         }
 
         // 3. Background Layers (Simulating Classroom Floor)
