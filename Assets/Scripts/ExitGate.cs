@@ -9,8 +9,9 @@ public class ExitGate : MonoBehaviour
         if (other.GetComponent<PlayerMovement>() == null) return;
 
         int currentBuildIndex = SceneManager.GetActiveScene().buildIndex;
-        // As per the setup, Level 1 has build index 2.
-        int currentLevelNum = currentBuildIndex - 1; 
+        
+        // Assuming Main Menu is build index 0, Level 1 is 1, Level 2 is 2, etc.
+        int currentLevelNum = currentBuildIndex; 
 
         // Update highest level unlocked
         int highestUnlocked = PlayerPrefs.GetInt("HighestLevelUnlocked", 1);
@@ -23,8 +24,7 @@ public class ExitGate : MonoBehaviour
         if (currentLevelNum >= 5)
         {
             Debug.Log("[Exit] All levels completed! Returning to Main Menu.");
-            // Assuming Main Menu is named "MainMenu"
-            SceneManager.LoadScene("MainMenu");
+            SceneManager.LoadScene(0); // Main menu build index
         }
         else
         {
