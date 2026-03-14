@@ -13,11 +13,13 @@ public class TeacherInspection : MonoBehaviour
 
     private RowZone[] _allRows;
     private PlayerMovement _player;
+    private TeacherVisionCone _teacherVision;
     private bool _isInspecting = false;
 
     private void Start()
     {
         _player = FindFirstObjectByType<PlayerMovement>();
+        _teacherVision = GetComponent<TeacherVisionCone>();
         // Find all row zones in the scene once at startup
         _allRows = FindObjectsByType<RowZone>(FindObjectsSortMode.None);
     }
@@ -35,6 +37,7 @@ public class TeacherInspection : MonoBehaviour
        
 
         _isInspecting = true;
+        if (_teacherVision != null) _teacherVision.SetDistracted(true);
 
         // Find the closest row to the player
         RowZone targetRow = null;
@@ -54,6 +57,7 @@ public class TeacherInspection : MonoBehaviour
         if (targetRow == null)
         {
             _isInspecting = false;
+            if (_teacherVision != null) _teacherVision.SetDistracted(false);
             yield break;
         }
 
@@ -94,6 +98,7 @@ public class TeacherInspection : MonoBehaviour
         // 7. Cooldown / Reset
         targetRow.SetState(isWarning: false, isDangerous: false);
 
+        if (_teacherVision != null) _teacherVision.SetDistracted(false);
         _isInspecting = false;
     }
 }
