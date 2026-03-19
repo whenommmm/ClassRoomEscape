@@ -26,18 +26,18 @@ public class MainMenuManager : MonoBehaviour
     private void Start()
     {
         // 1. Format and Position Main Menu Buttons
-        FormatButton(playButton, new Vector2(240, 60), new Vector2(0, 20));
+        FormatButton(playButton, new Vector2(200, 50), new Vector2(0, 40));
         if (playButton != null) playButton.onClick.AddListener(OnPlayClicked);
 
-        FormatButton(quitButton, new Vector2(240, 60), new Vector2(0, -60));
+        FormatButton(quitButton, new Vector2(200, 50), new Vector2(0, -30));
         if (quitButton != null) quitButton.onClick.AddListener(OnQuitClicked);
 
         // 2. Format and Position Level Select Buttons
         // Refined Grid Layout: Tighter spacing, perfectly centered, smaller UI elements
         Vector2[] gridPositions =
         {
-            new Vector2(-180, 70), new Vector2(0, 70), new Vector2(180, 70),  // Top row
-            new Vector2(-90, -90), new Vector2(90, -90)                       // Bottom row
+            new Vector2(-150, 100), new Vector2(0, 100), new Vector2(150, 100),  // Top row
+            new Vector2(-75, -40), new Vector2(75, -40)                          // Bottom row
         };
 
         int highestUnlocked = PlayerPrefs.GetInt("HighestLevelUnlocked", 1);
@@ -51,8 +51,8 @@ public class MainMenuManager : MonoBehaviour
 
                 if (btn != null)
                 {
-                    // Size is smaller (130x130) to prevent clipping and look minimal
-                    FormatButton(btn, new Vector2(130, 130), gridPositions[i]);
+                    // Size is smaller (110x110) to prevent clipping and look minimal
+                    FormatButton(btn, new Vector2(110, 110), gridPositions[i]);
 
                     // Add outline effect to tiles
                     Outline outline = btn.gameObject.GetComponent<Outline>();
@@ -74,7 +74,7 @@ public class MainMenuManager : MonoBehaviour
             }
         }
 
-        FormatButton(backButton, new Vector2(200, 50), new Vector2(0, -220));
+        FormatButton(backButton, new Vector2(180, 45), new Vector2(0, -150));
         if (backButton != null) backButton.onClick.AddListener(OnBackClicked);
 
         // 3. Set Initial State
