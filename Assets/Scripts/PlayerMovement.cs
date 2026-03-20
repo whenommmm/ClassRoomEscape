@@ -7,20 +7,16 @@ public class PlayerMovement : MonoBehaviour
     public float moveSpeed = 3f;
 
     [Header("Seat Interaction")]
-    public float seatRadius    = 0.20f;   // how close player must be to sit
-    private float sitCooldown   = 5f;      // seconds before player can sit again after standing up
-
-    [Header("Walk Bounds")]
-    public Vector2 walkMin = new Vector2(-5.5f, -4.0f);
-    private Vector2 walkMax = new Vector2( 6.0f,  4.5f);
+    public float seatRadius = 0.20f;   // how close player must be to sit
+    public float sitCooldown = 8f;     // Cannot sit back down immediately
 
     // Public so other systems (e.g. detection) can read it
     public bool IsStanding { get; private set; } = true;
 
     private Rigidbody2D _rb;
-    private Vector2     _input;
-    private bool        _spaceWasPressed;
-    private float       _sitCooldownTimer = 0f;  // counts down after standing up
+    private Vector2 _input;
+    private bool _spaceWasPressed;
+    private float _lastStandTime = -99f;
 
     void Awake()
     {
@@ -29,7 +25,11 @@ public class PlayerMovement : MonoBehaviour
 
     void Start()
     {
+        SnapToNearestSeat();
+    }
 
+    void SnapToNearestSeat()
+    {
         Seat[] seats = FindObjectsByType<Seat>(FindObjectsSortMode.None);
         Seat nearest = null;
         float nearestDist = float.MaxValue;
@@ -46,11 +46,8 @@ public class PlayerMovement : MonoBehaviour
 
         if (nearest != null)
         {
-            Vector2 snapPos = nearest.transform.position;
-            transform.position   = snapPos;
-            _rb.position         = snapPos;   // sync rigidbody so physics doesn't drift
-            _rb.linearVelocity   = Vector2.zero;
-            SetStanding(false);
+            transform.position = nearest.transform.position;
+            IsStanding = false;
         }
     }
 
@@ -69,10 +66,6 @@ public class PlayerMovement : MonoBehaviour
             TryToggleSit();
         }
         _spaceWasPressed = spacePressedNow;
-
-        // Tick down the sit cooldown
-        if (_sitCooldownTimer > 0f)
-            _sitCooldownTimer -= Time.deltaTime;
 
         // --- Movement (locked while sitting) ---
         if (!IsStanding)
@@ -94,36 +87,32 @@ public class PlayerMovement : MonoBehaviour
     void FixedUpdate()
     {
         _rb.linearVelocity = _input.normalized * moveSpeed;
-
-        // Clamp position and kill velocity on whichever axis hit the wall
-        Vector2 pos = _rb.position;
-        Vector2 vel = _rb.linearVelocity;
-
-        if (pos.x < walkMin.x) { pos.x = walkMin.x; vel.x = Mathf.Max(0f, vel.x); }
-        if (pos.x > walkMax.x) { pos.x = walkMax.x; vel.x = Mathf.Min(0f, vel.x); }
-        if (pos.y < walkMin.y) { pos.y = walkMin.y; vel.y = Mathf.Max(0f, vel.y); }
-        if (pos.y > walkMax.y) { pos.y = walkMax.y; vel.y = Mathf.Min(0f, vel.y); }
-
-        _rb.position = pos;
-        _rb.linearVelocity = vel;
     }
 
     void TryToggleSit()
     {
         if (!IsStanding)
         {
-            // Always allow standing up — start the cooldown now
-            _sitCooldownTimer = sitCooldown;
+            // Always allow standing up
             SetStanding(true);
+            _lastStandTime = Time.time;
             return;
         }
 
-        // Block sitting if cooldown is still active
-        if (_sitCooldownTimer > 0f)
+        // Check if player is actively under investigation so we bypass the cooldown
+        bool isUnderAttack = false;
+        TeacherInspection ti = FindFirstObjectByType<TeacherInspection>();
+        if (ti != null && ti.IsInspecting) isUnderAttack = true;
+        if (SuspicionMeter.Instance != null && SuspicionMeter.Instance.IsAlertActive) isUnderAttack = true;
+
+        // Check 8-second cooldown ONLY if not under attack
+        if (!isUnderAttack && Time.time - _lastStandTime < sitCooldown)
         {
-            int secsLeft = Mathf.CeilToInt(_sitCooldownTimer);
-            DialogueManager.Instance?.ShowDialogue(
-                $"You have to wait {secsLeft} second{(secsLeft == 1 ? "" : "s")}\nbefore you can sit again.", "");
+            Debug.Log("[Player] Still on sitting cooldown.");
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.ShowDialogue("You can't sit back down just yet!", "Narrator");
+            }
             return;
         }
 
@@ -136,8 +125,8 @@ public class PlayerMovement : MonoBehaviour
         {
             float dist = Vector2.Distance(transform.position, seat.transform.position);
             Debug.Log($"[Player] Seat found at distance {dist}. Radius: {seatRadius}");
-
-            // Check if player is within radius AND within acceptable Y range
+            
+            // Check if player is within radius AND within acceptable Y range (player Y < seat Y with some tolerance)
             float yDifference = seat.transform.position.y - transform.position.y;
             if (dist <= seatRadius && dist < nearestDist && yDifference > -0.5f)
             {
@@ -149,7 +138,7 @@ public class PlayerMovement : MonoBehaviour
         if (nearest != null)
         {
             Debug.Log($"[Player] Sitting! Distance was {nearestDist}, radius is {seatRadius}");
-            transform.position = nearest.transform.position;
+            transform.position = nearest.transform.position; // snap to seat
             SetStanding(false);
         }
         else

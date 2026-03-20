@@ -176,8 +176,7 @@ public class MainMenuManager : MonoBehaviour
 
     private void OnLevelSelected(int levelNum)
     {
-        // Level 1 = build index 2, Level 2 = build index 3, etc.
-        int buildIndex = levelNum + 1;
-        SceneManager.LoadScene(buildIndex);
+        // Level 1 = build index 1, Level 2 = build index 2, etc.
+        SceneManager.LoadScene(levelNum);
     }
 }

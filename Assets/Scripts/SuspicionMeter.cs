@@ -10,8 +10,8 @@ public class SuspicionMeter : MonoBehaviour
 {
     public static SuspicionMeter Instance { get; private set; }
 
-    private float watcherBonus  = 0.13f;  
-    private float fillRate      = 0.07f;  
+    private float watcherBonus  = 0.19f;  
+    private float fillRate      = 0.10f;  
     private float drainRate     = 0.13f;  
     private float catchThreshold = 1f; 
     
@@ -30,12 +30,16 @@ public class SuspicionMeter : MonoBehaviour
     private bool               _alertActive    = false;
     private bool               _dialoguePlayed = false;   // fires only once ever
     private bool               _hasRowPenalty  = false;   // set by RowZone each frame
-    private bool               _inspectionTriggered = false; // ensures row inspection triggers once per 70% threshold crossing
+    private bool               _inspectionTriggered = false; // ensures row inspection triggers once per 75% threshold crossing
     private float              _pauseTimer     = 0f;      // grace period
-    private const float        AlertThreshold  = 0.4f;
+    private float              _alertDurationTimer = 0f;  // tracks the 3 second max focus
+    private float              _alertCooldownTimer = 0f;  // prevents spamming
+    private const float        AlertThreshold  = 0.40f;
+    private const float        InspectThreshold = 0.75f;
     private TeacherInspection  _inspection;               // Ensures we can check if inspection is running
 
     public float CurrentSuspicion => _suspicion;
+    public bool IsAlertActive => _alertActive;
 
     private Transform      _barRoot;
     private SpriteRenderer _bgSr;
@@ -97,17 +101,19 @@ public class SuspicionMeter : MonoBehaviour
         _suspicion = Mathf.Clamp01(_suspicion);
         
 
+        if (_alertCooldownTimer > 0f) _alertCooldownTimer -= Time.deltaTime;
+
         bool isInspecting = _inspection != null && _inspection.IsInspecting;
 
-        // Trigger teacher alert at 40% suspicion, UNLESS an inspection is actively taking over
-        bool shouldAlert = _suspicion >= AlertThreshold && !isInspecting;
-        if (shouldAlert != _alertActive)
+        // Trigger teacher alert at 40% suspicion, UNLESS an inspection is actively taking over or we are on cooldown
+        if (!_alertActive && _suspicion >= AlertThreshold && _suspicion < 0.60f && !isInspecting && _alertCooldownTimer <= 0f)
         {
-            _alertActive = shouldAlert;
-            _teacher?.SetAlertMode(_alertActive, _player.transform);
+            _alertActive = true;
+            _alertDurationTimer = 3f; // Automatically ends after 3 seconds
+            _teacher?.SetAlertMode(true, _player.transform);
 
             // Dialogue and grace period — only the very first time ever
-            if (_alertActive && !_dialoguePlayed)
+            if (!_dialoguePlayed)
             {
                 _dialoguePlayed = true;
                 _pauseTimer = 3f; // 3 second grace period before tracking punishes them
@@ -115,8 +121,21 @@ public class SuspicionMeter : MonoBehaviour
             }
         }
 
-        // Trigger Row Inspection at 70% suspicion
-        bool shouldInspect = _suspicion >= 0.7f;
+        if (_alertActive)
+        {
+            _alertDurationTimer -= Time.deltaTime;
+            
+            // It cools down when the player sits or automatically after 3 seconds, or if inspection overrides
+            if (!_player.IsStanding || _alertDurationTimer <= 0f || isInspecting)
+            {
+                _alertActive = false;
+                _teacher?.SetAlertMode(false);
+                _alertCooldownTimer = 12f; // 12-second global cooldown to prevent yo-yo effect
+            }
+        }
+
+        // Trigger Row Inspection at 75% suspicion
+        bool shouldInspect = _suspicion >= InspectThreshold;
         if (shouldInspect && !_inspectionTriggered)
         {
             _inspectionTriggered = true;

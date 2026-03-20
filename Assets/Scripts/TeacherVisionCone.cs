@@ -82,14 +82,14 @@ public class TeacherVisionCone : MonoBehaviour
 
         if (_alertMode && _playerTransform != null)
         {
-            // Rotate pivot to face player
+            // Rotate pivot smoothly to face player
             Vector2 dir = (_playerTransform.position - transform.position).normalized;
-            float angle = Mathf.Atan2(dir.x, -dir.y) * Mathf.Rad2Deg;
-            _conePivot.rotation = Quaternion.Euler(0f, 0f, angle);
+            float targetAngle = Mathf.Atan2(dir.x, -dir.y) * Mathf.Rad2Deg;
+            
+            Quaternion targetRot = Quaternion.Euler(0f, 0f, targetAngle);
+            _conePivot.rotation = Quaternion.Slerp(_conePivot.rotation, targetRot, Time.deltaTime * 6f);
 
-            // Stretch rectangle to exactly reach the player.
-            // InverseTransformPoint converts to _conePivot local space, so scale on
-            // the teacher or its parents is automatically accounted for.
+            // Stretch rectangle to exactly reach the player
             Vector3 localPlayer = _conePivot.InverseTransformPoint(_playerTransform.position);
             float dist = localPlayer.magnitude + 0.15f;  // tiny overshoot so tip covers player
             BuildRectangle(dist);
