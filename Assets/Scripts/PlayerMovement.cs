@@ -21,6 +21,12 @@ public class PlayerMovement : MonoBehaviour
     void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
+
+        // Inject the ResultScreenManager automatically so the user doesn't have to fiddle with prefabs
+        if (FindObjectsByType<ResultScreenManager>(FindObjectsSortMode.None).Length == 0)
+        {
+            new GameObject("ResultScreenManager").AddComponent<ResultScreenManager>();
+        }
     }
 
     void Start()
@@ -137,13 +143,27 @@ public class PlayerMovement : MonoBehaviour
 
         if (nearest != null)
         {
+            // 25% chance to fail
+            if (Random.value < 0.25f)
+            {
+                Debug.Log("[Player] Seat RNG failed! (Occupied)");
+                if (DialogueManager.Instance != null)
+                {
+                    DialogueManager.Instance.ShowDialogue("I can't sit here, it's occupied.", "Player");
+                }
+                
+                // Add a tiny 1-second delay so they can't instantly spam Spacebar to bypass the RNG on the exact same frame
+                _lastStandTime = Time.time - sitCooldown + 1f; 
+                return;
+            }
+
             Debug.Log($"[Player] Sitting! Distance was {nearestDist}, radius is {seatRadius}");
             transform.position = nearest.transform.position; // snap to seat
             SetStanding(false);
         }
         else
         {
-            Debug.Log("[Player] No seat nearby to sit on.");
+            DialogueManager.Instance.ShowDialogue(" No seat nearby to sit on.","Narrator");
         }
     }
 

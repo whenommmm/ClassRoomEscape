@@ -35,7 +35,7 @@ public class MainMenuManager : MonoBehaviour
             titleText.anchorMin = new Vector2(0.5f, 0.5f);
             titleText.anchorMax = new Vector2(0.5f, 0.5f);
             titleText.pivot = new Vector2(0.5f, 0.5f);
-            titleText.anchoredPosition = new Vector2(0, 180); // Brought up slightly from 140
+            titleText.anchoredPosition = new Vector2(0, 125); // Brought down very subtly
             titleText.localRotation = Quaternion.Euler(0, 0, 8f); // 8 degrees is a much more natural sticker tilt
             titleText.localScale = new Vector3(1.6f, 1.6f, 1f); // Scale it up natively so it stands out against the giant buttons
             
