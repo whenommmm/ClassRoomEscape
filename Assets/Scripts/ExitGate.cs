@@ -23,13 +23,24 @@ public class ExitGate : MonoBehaviour
 
         if (currentLevelNum >= 5)
         {
-            Debug.Log("[Exit] All levels completed! Returning to Main Menu.");
-            SceneManager.LoadScene(0); // Main menu build index
+            Debug.Log("[Exit] All levels completed! Resolving Game.");
         }
         else
         {
-            Debug.Log($"[Exit] Player escaped! Loading Level {currentLevelNum + 1}");
-            SceneManager.LoadScene(currentBuildIndex + 1);
+            Debug.Log($"[Exit] Player escaped! Unlocked Level {currentLevelNum + 1}");
+        }
+
+        int nextScene = (currentLevelNum >= 5) ? 0 : currentBuildIndex + 1;
+
+        // Trigger generic 3-second result overlay for Win
+        if (ResultScreenManager.Instance != null)
+        {
+            ResultScreenManager.Instance.ShowResult(true, nextScene);
+        }
+        else
+        {
+            // Fallback
+            SceneManager.LoadScene(nextScene);
         }
     }
 }

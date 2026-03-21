@@ -21,12 +21,6 @@ public class PlayerMovement : MonoBehaviour
     void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
-
-        // Inject the ResultScreenManager automatically so the user doesn't have to fiddle with prefabs
-        if (FindObjectsByType<ResultScreenManager>(FindObjectsSortMode.None).Length == 0)
-        {
-            new GameObject("ResultScreenManager").AddComponent<ResultScreenManager>();
-        }
     }
 
     void Start()

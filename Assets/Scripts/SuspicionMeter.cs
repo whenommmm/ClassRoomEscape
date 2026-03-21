@@ -229,6 +229,16 @@ public class SuspicionMeter : MonoBehaviour
         Debug.Log("[SuspicionMeter] Player caught!");
         _suspicion = 0f;
         _watchers  = 0;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        
+        // Trigger generic 3-second result overlay for Loss
+        if (ResultScreenManager.Instance != null)
+        {
+            ResultScreenManager.Instance.ShowResult(false);
+        }
+        else
+        {
+            // Fallback
+            UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+        }
     }
 }
