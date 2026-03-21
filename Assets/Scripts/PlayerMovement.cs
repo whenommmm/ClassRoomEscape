@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Movement Settings")]
-    public float moveSpeed = 3f;
+    private float moveSpeed = 1.5f;
 
     [Header("Seat Interaction")]
     public float seatRadius = 0.20f;   // how close player must be to sit
