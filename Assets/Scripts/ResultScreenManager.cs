@@ -5,6 +5,8 @@ using System.Collections;
 /// <summary>
 /// Place this script on a permanent manager object in your scene (or prefab)
 /// and drag your custom Win and Loss UI Panels into the slots.
+/// 
+/// Note: Make sure your Continue/Retry buttons call OnContinueClicked() and OnRetryClicked()
 /// </summary>
 public class ResultScreenManager : MonoBehaviour
 {
@@ -13,6 +15,8 @@ public class ResultScreenManager : MonoBehaviour
     [Header("Drag & Drop Panels Here")]
     public GameObject winPanel;
     public GameObject lossPanel;
+
+    private int _nextSceneIndex = 0;
 
     void Awake()
     {
@@ -26,38 +30,50 @@ public class ResultScreenManager : MonoBehaviour
 
     public void ShowResult(bool isWin, int nextSceneIndex = 0)
     {
-        StartCoroutine(ResultRoutine(isWin, nextSceneIndex));
+        _nextSceneIndex = nextSceneIndex;
+        GameObject targetPanel = isWin ? winPanel : lossPanel;
+        
+        if (targetPanel != null)
+        {
+            StartCoroutine(FadeInPanel(targetPanel));
+        }
     }
 
-    private IEnumerator ResultRoutine(bool isWin, int nextSceneIndex)
+    private IEnumerator FadeInPanel(GameObject panel)
     {
         // Snap everything to a complete halt
         Time.timeScale = 0f;
+        panel.SetActive(true);
+
+        CanvasGroup cg = panel.GetComponent<CanvasGroup>();
+        if (cg == null) cg = panel.AddComponent<CanvasGroup>();
+
+        cg.alpha = 0f;
+        float duration = 0.8f; // Fade in over 0.8 seconds
+        float elapsed = 0f;
         
-        // Show the respective panel you dragged in
-        if (isWin)
+        // Use unscaledDeltaTime because timeScale is 0
+        while (elapsed < duration)
         {
-            if (winPanel != null) winPanel.SetActive(true);
+            elapsed += Time.unscaledDeltaTime;
+            cg.alpha = Mathf.Clamp01(elapsed / duration);
+            yield return null;
         }
-        else
-        {
-            if (lossPanel != null) lossPanel.SetActive(true);
-        }
+        cg.alpha = 1f;
+    }
 
-        // Wait absolutely exactly 3 real-world seconds
-        yield return new WaitForSecondsRealtime(3f);
-
-        // Restore reality
+    // Link this to your "Continue" button OnClick() event in the Win Panel
+    public void OnContinueClicked()
+    {
         Time.timeScale = 1f;
+        SceneManager.LoadScene(_nextSceneIndex);
+    }
 
-        // Route the player. If they lost, boot to Main Menu (0) unless specified otherwise.
-        if (isWin)
-        {
-            SceneManager.LoadScene(nextSceneIndex);
-        }
-        else
-        {
-            SceneManager.LoadScene(0); // Fail returns to Level Select
-        }
+    // Link this to your "Retry" button OnClick() event in the Loss Panel
+    public void OnRetryClicked()
+    {
+        Time.timeScale = 1f;
+        // Retry restarts the current active scene
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }
